@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc\framework.h" />
+    <ClInclude Include="inc\kip.h" />
     <ClInclude Include="inc\pch.h" />
   </ItemGroup>
   <ItemGroup>
