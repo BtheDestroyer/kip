@@ -25,6 +25,7 @@
     <ClInclude Include="inc\kipInstruction.h" />
     <ClInclude Include="inc\kipUniversal.h" />
     <ClInclude Include="inc\kipMemory.h" />
+    <ClInclude Include="inc\kipVersion.h" />
     <ClInclude Include="inc\pch.h" />
   </ItemGroup>
   <ItemGroup>

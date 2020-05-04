@@ -32,6 +32,9 @@
     <ClInclude Include="inc\kipInstruction.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="inc\kipVersion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\dllmain.cpp">

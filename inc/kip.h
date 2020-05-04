@@ -4,6 +4,7 @@
 #include "kipHelloWorld.h"
 #include "kipMemory.h"
 #include "kipInstruction.h"
+#include "kipVersion.h"
 
 namespace kip
 {
