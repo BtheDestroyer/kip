@@ -55,7 +55,6 @@ namespace kip
       line = line.substr(std::min(newPart.size() + 1, line.size()));
       if (newPart.size() > 0)
       {
-        //std::transform(newPart.begin(), newPart.end(), newPart.begin(), std::toupper);
         for (unsigned i = 0; i < newPart.size(); ++i)
           newPart[i] = std::toupper(newPart[i]);
         split.push_back(newPart);
