@@ -8,6 +8,8 @@
 #define PCH_H
 
 // add headers that you want to pre-compile here
+#include "kipUniversal.h"
 #include "framework.h"
+#include <cstdint>
 
 #endif //PCH_H
