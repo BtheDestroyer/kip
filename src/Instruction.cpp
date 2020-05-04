@@ -94,6 +94,30 @@ namespace kip
   {
     if (inst.command.empty())
       return InterpretResult(true, "");
+    // RDB A B C
+    // Prints the byte at address A. Purely for debugging.
+    if (inst.command == "RDB")
+    {
+      if (inst.arguments.size() != 1)
+        return InterpretResult(false, inst.command + " requires 1 arguments");
+      uint32_t A = inst.arguments[0].GetAddr();
+      uint8_t out;
+      if (ReadByte(A, out))
+        return InterpretResult(true, std::to_string(int(A)) + "=>" + std::to_string(int(out)));
+      return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
+    }
+    // RDA A B C
+    // Prints the address at address A. Purely for debugging.
+    if (inst.command == "RDA")
+    {
+      if (inst.arguments.size() != 1)
+        return InterpretResult(false, inst.command + " requires 1 arguments");
+      uint32_t A = inst.arguments[0].GetAddr();
+      uint32_t out;
+      if (ReadBytes(A, (uint8_t*)(&out), 4))
+        return InterpretResult(true, std::to_string(int(A)) + "=>" + std::to_string(int(out)));
+      return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
+    }
     // STR A B
     // Stores value of A at address B
     if (inst.command == "STR")
