@@ -8,49 +8,62 @@
 
 namespace kip
 {
-  // List of                mapped addr, real addr,     size
-  typedef std::list<std::tuple<uint32_t,  uint8_t*, uint32_t>> MemoryMap;
+  struct MemoryBlock {
+    uint32_t mappedAddr;
+    uint8_t* realAddr;
+    uint32_t size;
+    void (*readFunc)(uint32_t offset, uint8_t* out, uint32_t count);
+    void (*writeFunc)(uint32_t offset, uint8_t* in, uint32_t count);
+    enum Type {
+      DATA,
+      FUNC
+    } type;
+  };
+  typedef std::list<MemoryBlock> MemoryMap;
   MemoryMap memoryMap;
 
-  bool MapMemory(uint8_t* start, uint32_t size, uint32_t mappedStart)
+  bool MapMemory(MemoryBlock newBlock)
   {
-    if (mappedStart + size <= mappedStart)
+    if (newBlock.mappedAddr + newBlock.size <= newBlock.mappedAddr)
       return false; // Couldn't map. End position somehow before start position
     MemoryMap::iterator it = memoryMap.begin();
     if (it == memoryMap.end())
     {
-      memoryMap.push_front(std::make_tuple(mappedStart, start, size));
+      memoryMap.push_front(newBlock);
       return true; // Mapped to new first block
     }
-    uint32_t ma, s;
-    uint8_t* ra;
-    std::tie(ma, ra, s) = *it;
-    if (mappedStart + size < ma)
+    if (newBlock.mappedAddr + newBlock.size < it->mappedAddr)
     {
-      memoryMap.push_front(std::make_tuple(mappedStart, start, size));
+      memoryMap.push_front(newBlock);
       return true; // Mapped to new first block
     }
     while (it != memoryMap.end())
     {
-      std::tie(ma, ra, s) = *it;
-      if (mappedStart < ma + s && mappedStart >= ma)
+      if (newBlock.mappedAddr < it->mappedAddr + it->size && newBlock.mappedAddr >= it->mappedAddr)
         return false; // Couldn't map. Start position has already been mapped
-      if (mappedStart + size < ma + s && mappedStart + size >= ma)
+      if (newBlock.mappedAddr + newBlock.size < it->mappedAddr + it->size && newBlock.mappedAddr + newBlock.size >= it->mappedAddr)
         return false; // Couldn't map. End position has already been mapped
-      if (mappedStart < ma && mappedStart + size >= ma + s)
+      if (newBlock.mappedAddr < it->mappedAddr && newBlock.mappedAddr + newBlock.size >= it->mappedAddr + it->size)
         return false; // Couldn't map. New block contains existing block
       MemoryMap::iterator prev = it++;
-      uint32_t ma2, s2;
-      uint8_t* ra2;
-      std::tie(ma2, ra2, s2) = *it;
-      if (ma2 > mappedStart + size)
+      if (it->mappedAddr > newBlock.mappedAddr + newBlock.size)
       {
-        memoryMap.insert(prev, std::make_tuple(mappedStart, start, size));
+        memoryMap.insert(prev, newBlock);
         return true; // Mapped to new middle block
       }
     }
-    memoryMap.push_back(std::make_tuple(mappedStart, start, size));
+    memoryMap.push_back(newBlock);
     return true; // Mapped to new end block
+  }
+
+  bool MapMemory(uint8_t* start, uint32_t size, uint32_t mappedStart)
+  {
+    return MapMemory({ mappedStart, start, size, nullptr, nullptr, MemoryBlock::DATA });
+  }
+
+  bool MapMemory(void (*readFunc)(uint32_t offset, uint8_t* out, uint32_t count), void (*writeFunc)(uint32_t offset, uint8_t* in, uint32_t count), uint32_t size, uint32_t mappedStart)
+  {
+    return MapMemory({ mappedStart, nullptr, size, readFunc, writeFunc, MemoryBlock::FUNC });
   }
 
   bool UnmapMemory(uint32_t mappedStart)
@@ -58,15 +71,12 @@ namespace kip
     MemoryMap::iterator it = memoryMap.begin();
     while (it != memoryMap.end())
     {
-      uint32_t ma, s;
-      uint8_t* ra;
-      std::tie(ma, ra, s) = *it;
-      if (ma == mappedStart)
+      if (it->mappedAddr == mappedStart)
       {
         memoryMap.erase(it);
         return true; // Unmapped memory
       }
-      if (ma > mappedStart)
+      if (it->mappedAddr > mappedStart)
       {
         return false; // Memory was not mapped
       }
@@ -80,15 +90,12 @@ namespace kip
     MemoryMap::iterator it = memoryMap.begin();
     while (it != memoryMap.end())
     {
-      uint32_t ma, s;
-      uint8_t* ra;
-      std::tie(ma, ra, s) = *it;
-      if (ra == start)
+      if (it->realAddr == start)
       {
         memoryMap.erase(it);
         return true; // Unmapped memory
       }
-      if (ra > start)
+      if (it->realAddr > start)
         return false; // Memory was not mapped
       ++it;
     }
@@ -100,15 +107,16 @@ namespace kip
     MemoryMap::iterator it = memoryMap.begin();
     while (it != memoryMap.end())
     {
-      uint32_t ma, s;
-      uint8_t* ra;
-      std::tie(ma, ra, s) = *it;
-      if (ma <= address && ma + s > address)
+      if (it->mappedAddr <= address && it->mappedAddr + it->size > address)
       {
-        ra[address - ma] = byte;
+        uint32_t offset = address - it->mappedAddr;
+        if (it->type == MemoryBlock::DATA)
+          it->realAddr[offset] = byte;
+        else if (it->type == MemoryBlock::FUNC)
+          it->writeFunc(offset, &byte, 1);
         return true; // Memory found
       }
-      if (ma > address)
+      if (it->mappedAddr > address)
         return false; // Memory was not mapped
       ++it;
     }
@@ -120,15 +128,16 @@ namespace kip
     MemoryMap::iterator it = memoryMap.begin();
     while (it != memoryMap.end())
     {
-      uint32_t ma, s;
-      uint8_t* ra;
-      std::tie(ma, ra, s) = *it;
-      if (ma <= address && ma + s > address)
+      if (it->mappedAddr <= address && it->mappedAddr + it->size > address)
       {
-        byte = ra[address - ma];
+        uint32_t offset = address - it->mappedAddr;
+        if (it->type == MemoryBlock::DATA)
+          byte = it->realAddr[offset];
+        else if (it->type == MemoryBlock::FUNC)
+          it->readFunc(offset, &byte, 1);
         return true; // Memory found
       }
-      if (ma > address)
+      if (it->mappedAddr > address)
         return false; // Memory was not mapped
       ++it;
     }
@@ -140,21 +149,21 @@ namespace kip
     MemoryMap::iterator it = memoryMap.begin();
     while (it != memoryMap.end())
     {
-      uint32_t ma, s;
-      uint8_t* ra;
-      std::tie(ma, ra, s) = *it;
-      if (ma <= address && ma + s > address)
+      if (it->mappedAddr <= address && it->mappedAddr + it->size > address)
       {
-        uint32_t addrOffset = address - ma;
-        uint32_t toCopy = std::min(count, s - addrOffset);
-        std::memcpy(ra + addrOffset, bytes, toCopy);
+        uint32_t offset = address - it->mappedAddr;
+        uint32_t toCopy = std::min(count, it->size - offset);
+        if (it->type == MemoryBlock::DATA)
+          std::memcpy(it->realAddr + offset, bytes, toCopy);
+        else if (it->type == MemoryBlock::FUNC)
+          it->writeFunc(offset, bytes, toCopy);
         count -= toCopy;
         address += toCopy;
         bytes += toCopy;
         if (count == 0)
           return true; // Coppied all data
       }
-      if (ma > address)
+      if (it->mappedAddr > address)
         return false; // Memory was not mapped
       ++it;
     }
@@ -166,21 +175,21 @@ namespace kip
     MemoryMap::iterator it = memoryMap.begin();
     while (it != memoryMap.end())
     {
-      uint32_t ma, s;
-      uint8_t* ra;
-      std::tie(ma, ra, s) = *it;
-      if (ma <= address && ma + s > address)
+      if (it->mappedAddr <= address && it->mappedAddr + it->size > address)
       {
-        uint32_t addrOffset = address - ma;
-        uint32_t toCopy = std::min(count, s - addrOffset);
-        std::memcpy(bytes, ra + addrOffset, toCopy);
+        uint32_t offset = address - it->mappedAddr;
+        uint32_t toCopy = std::min(count, it->size - offset);
+        if (it->type == MemoryBlock::DATA)
+          std::memcpy(bytes, it->realAddr + offset, toCopy);
+        else if (it->type == MemoryBlock::FUNC)
+          it->readFunc(offset, bytes, toCopy);
         count -= toCopy;
         address += toCopy;
         bytes += toCopy;
         if (count == 0)
           return true; // Coppied all data
       }
-      if (ma > address)
+      if (it->mappedAddr > address)
         return false; // Memory was not mapped
       ++it;
     }
