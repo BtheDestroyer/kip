@@ -51,6 +51,11 @@ namespace kip
     std::vector<std::string> split;
     while (line.size() > 0)
     {
+      char commentChars[] = { ';', '|', '?', '}' };
+      size_t comment = line.size();
+      for (unsigned i = 0; i < 4; ++i)
+        comment = std::min(comment, line.find_first_of(commentChars[i]));
+      line = line.substr(0, comment);
       std::string newPart = line.substr(0, line.find(' '));
       line = line.substr(std::min(newPart.size() + 1, line.size()));
       if (newPart.size() > 0)
@@ -87,6 +92,8 @@ namespace kip
 
   InterpretResult InterpretInstruction(Instruction inst)
   {
+    if (inst.command.empty())
+      return InterpretResult(true, "");
     // STR A B
     // Stores value of A at address B
     if (inst.command == "STR")
