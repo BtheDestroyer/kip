@@ -37,8 +37,10 @@ namespace kip
   };
 
   DLLMODE InterpretResult InterpretLine(std::string line);
+  DLLMODE std::vector<InterpretResult> InterpretLines(std::vector<std::string> lines);
   DLLMODE Instruction ParseLine(std::string line);
-  DLLMODE InterpretResult InterpretInstruction(Instruction line);
+  DLLMODE InterpretResult InterpretInstruction(Instruction inst);
+  DLLMODE std::vector<InterpretResult> InterpretInstructions(std::vector<Instruction> inst);
 }
 
 #pragma warning(pop)
