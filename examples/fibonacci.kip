@@ -1,0 +1,28 @@
+; Demo kip file that calculates the fibonacci sequence
+
+FIL 0 $0 $40       ; Clear working RAM
+STR $1 $20         ; Starting value X_0
+STR $1 $21         ; Starting value X_1
+STR $22 $0         ; Current write index
+STR $2D $4         ; 1 after final write index
+
+SUB *$0 2 $8       ; Find value of A
+SUB *$0 1 $1C      ; Find value of B
+ADD **$8 **$1C *$0 ; New number is A + B
+ADD *$0 $1 $0      ; Increment write index
+JNE 9 *$0 *$4      ; Jump back to line 9 if *$0 hasn't reached *$4
+
+RDB $20            |
+RDB $21            |
+RDB $22            |
+RDB $23            |
+RDB $24            |
+RDB $25            |
+RDB $26            } Prints [$20,$2C] as output
+RDB $27            |
+RDB $28            |
+RDB $29            |
+RDB $2A            |
+RDB $2B            |
+RDB $2C            |
+HLT                ; Ends the program
