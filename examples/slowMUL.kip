@@ -1,17 +1,22 @@
 ; Demo kip file that multiplies 2 numbers
 ; Used to showcase loops
 
+>start
 FIL 0 $0 $4    ; Clear working RAM
 STR 6 $0       ; Operand A = 6
 STR 7 $1       ; Operand B = 7
 
+>mul
 STR *$1 $2     ; Copy value at $1 to $2
+>mul_loop
 ADD *$0 *$3 $3 ; Add value at $0 to value at $3
 SUB *$2 1 $2   ; Decrement value at $2
-JNE 8 *$2 0    ; Jump back to line 7 if $2 isn't 0
+JNE mul_loop *$2 0    ; Jump back to line 7 if $2 isn't 0
 
+>mul_real
 MUL *$0 *$1 $4 ; Same as lines [7, 10] but stores the result in 4
 
+>output
 RDB $0         |
 RDB $1         |
 RDB $2         } Displays RAM [0,4]

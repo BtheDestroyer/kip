@@ -1,0 +1,9 @@
+; Demo kip file that uses labels
+
+>constant 5
+>start
+STR start 0
+STR end 1
+STR constant 2
+
+>end

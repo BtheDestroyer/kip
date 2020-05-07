@@ -413,6 +413,53 @@ namespace kip
     }
   }
 
+  Instruction::Instruction(std::string line, Context context)
+    : id(0)
+  {
+    std::vector<std::string> split;
+    while (line.size() > 0)
+    {
+      char commentChars[] = { ';', '|', '?', '}' };
+      size_t comment = line.size();
+      for (unsigned i = 0; i < 4; ++i)
+        comment = std::min(comment, line.find_first_of(commentChars[i]));
+      line = line.substr(0, comment);
+      std::string newPart = line.substr(0, line.find(' '));
+      line = line.substr(std::min(newPart.size() + 1, line.size()));
+      if (newPart.size() > 0)
+      {
+        for (unsigned i = 0; i < newPart.size(); ++i)
+          newPart[i] = std::toupper(newPart[i]);
+        split.push_back(newPart);
+      }
+    }
+    if (split.size() > 0)
+    {
+      id = GetInstructionIndex(split[0]);
+      for (unsigned i = 1; i < split.size(); ++i)
+      {
+        Argument A;
+        while (split[i][0] == '*') // Dereferences
+        {
+          ++A.dereferenceCount;
+          split[i] = split[i].substr(1);
+        }
+        if (split[i][0] == '$') // Hex value
+          A.data = std::stoi(split[i].substr(1), nullptr, 16);
+        else if (split[i][0] == ':') // Binary value
+          A.data = std::stoi(split[i].substr(1), nullptr, 2);
+        else if (split[i][0] == '#') // Octal
+          A.data = std::stoi(split[i].substr(1), nullptr, 8);
+        else if (context.find(split[i]) != context.end()) // Label
+          A.data = context[split[i]];
+        else // Decimal value
+          A.data = std::stoi(split[i], nullptr, 10);
+        arguments.push_back(A);
+      }
+    }
+  }
+
+
   InterpretResult::InterpretResult(bool success, std::string str)
     : success(success), str(str)
   {
@@ -437,13 +484,67 @@ namespace kip
 
   std::vector<InterpretResult> InterpretLines(std::vector<std::string> lines)
   {
+    Instruction::Context context;
+    for (uint32_t i = 0; i < lines.size(); ++i)
+    {
+      std::string& line = lines[i];
+      size_t p = line.find_first_not_of(' ');
+      if (p != -1 && p != 0)
+        line = line.substr(p);
+      if (line.size() > 0 && line[0] == '>')
+      {
+        for (unsigned i = 0; i < line.size(); ++i)
+          line[i] = std::toupper(line[i]);
+        line = line.substr(1);
+        p = line.find_first_not_of(' ');
+        if (p != -1 && p != 0)
+          line = line.substr(p);
+        if (line.size() == 0)
+        {
+          std::vector<InterpretResult> results;
+          results.push_back(InterpretResult(false, "Compilation error: No label name at line " + std::to_string(i)));
+          return results;
+        }
+        std::string label = line.substr(0, line.find_first_of(' '));
+        if (context.find(label) != context.end())
+        {
+          std::vector<InterpretResult> results;
+          results.push_back(InterpretResult(false, "Compilation error: Redefinition of label \"" + line.substr(1) + "\" at line " + std::to_string(i)));
+          return results;
+        }
+        line = line.substr(label.size());
+        p = line.find_first_not_of(' ');
+        if (p != -1 && p != 0)
+          line = line.substr(p);
+        int v = i + 1;
+        if (line.size() > 0 && line[0] >= '0' && line[0] <= '9')
+        {
+          v = 0;
+          for (size_t j = 0; j < line.size() && line[j] >= '0' && line[j] <= '9'; ++j)
+            v = v * 10 + line[j] - '0';
+        }
+        context[label] = v;
+        line = "";
+      }
+    }
     std::vector<Instruction> instructions;
-    for (auto line : lines)
-      instructions.push_back(Instruction(line));
-    return InterpretInstructions(instructions);
+    for (uint32_t i = 0; i < lines.size(); ++i)
+    {
+      std::string& line = lines[i];
+      size_t p = line.find_first_not_of(' ');
+      if (p != -1 && p != 0)
+        line = line.substr(p);
+      instructions.push_back(Instruction(line, context));
+    }
+    return InterpretInstructions(instructions, context);
   }
 
   std::vector<InterpretResult> InterpretInstructions(std::vector<Instruction> inst)
+  {
+    return InterpretInstructions(inst, Instruction::Context());
+  }
+
+  std::vector<InterpretResult> InterpretInstructions(std::vector<Instruction> inst, Instruction::Context context)
   {
     std::vector<InterpretResult> r;
     unsigned lnWidth = 0;
@@ -451,7 +552,7 @@ namespace kip
       ++lnWidth;
     for (uint32_t i = 0; i < inst.size();)
     {
-      Instruction &c = inst[i++];
+      Instruction& c = inst[i++];
       if (c.id == 0)
         continue;
       std::string ln = "";

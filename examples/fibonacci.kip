@@ -1,17 +1,20 @@
 ; Demo kip file that calculates the fibonacci sequence
 
+>start
 FIL 0 $0 $40       ; Clear working RAM
 STR $1 $20         ; Starting value X_0
 STR $1 $21         ; Starting value X_1
 STR $22 $0         ; Current write index
 STR $2D $4         ; 1 after final write index
 
+>fib
 SUB *$0 2 $8       ; Find value of A
 SUB *$0 1 $1C      ; Find value of B
 ADD **$8 **$1C *$0 ; New number is A + B
 ADD *$0 $1 $0      ; Increment write index
-JNE 9 *$0 *$4      ; Jump back to line 9 if *$0 hasn't reached *$4
+JNE fib *$0 *$4      ; Jump back to line 9 if *$0 hasn't reached *$4
 
+>output
 RDB $20            |
 RDB $21            |
 RDB $22            |
