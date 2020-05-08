@@ -16,7 +16,8 @@ namespace kip
     InterpretResult (Instruction::*function)(uint32_t* line);
   } instructionTable[] = {
     { "???", 0, nullptr },
-    { "STR", 2, &Instruction::STR },
+    { "STB", 2, &Instruction::STB },
+    { "STA", 2, &Instruction::STA },
     { "RDB", 1, &Instruction::RDB },
     { "RDA", 1, &Instruction::RDA },
     { "FIL", 3, &Instruction::FIL },
@@ -53,11 +54,20 @@ namespace kip
 
 //////////////////////////////////////////////////////////////
 
-  InterpretResult Instruction::STR(uint32_t* line)
+  InterpretResult Instruction::STB(uint32_t* line)
   {
     uint8_t  A = arguments[0].GetByte();
     uint32_t B = arguments[1].GetAddr();
     if (WriteByte(B, A))
+      return InterpretResult(true, std::to_string(int(B)) + "<=" + std::to_string(int(A)));
+    return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
+  }
+
+  InterpretResult Instruction::STA(uint32_t* line)
+  {
+    uint32_t A = arguments[0].GetAddr();
+    uint32_t B = arguments[1].GetAddr();
+    if (WriteBytes(B, (uint8_t*)(&A), 4))
       return InterpretResult(true, std::to_string(int(B)) + "<=" + std::to_string(int(A)));
     return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
   }

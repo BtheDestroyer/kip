@@ -39,7 +39,8 @@ namespace kip
     Instruction(std::string line);
     Instruction(std::string line, Context context);
 
-    InterpretResult STR(uint32_t* line);
+    InterpretResult STB(uint32_t* line);
+    InterpretResult STA(uint32_t* line);
     InterpretResult RDB(uint32_t* line);
     InterpretResult RDA(uint32_t* line);
     InterpretResult FIL(uint32_t* line);
