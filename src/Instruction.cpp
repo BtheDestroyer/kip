@@ -339,20 +339,18 @@ namespace kip
 
   InterpretResult Instruction::INC(uint32_t* line)
   {
-    uint8_t  A = arguments[0].GetAddr();
+    uint32_t A = arguments[0].GetAddr();
     uint8_t  v;
-    ReadByte(A, v);
-    if (WriteByte(A, ++v))
+    if (ReadByte(A, v) && WriteByte(A, ++v))
       return InterpretResult(true, std::to_string(int(A)) + "<=" + std::to_string(int(v)));
     return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
   }
 
   InterpretResult Instruction::DEC(uint32_t* line)
   {
-    uint8_t  A = arguments[0].GetAddr();
+    uint32_t A = arguments[0].GetAddr();
     uint8_t  v;
-    ReadByte(A, v);
-    if (WriteByte(A, --v))
+    if (ReadByte(A, v) && WriteByte(A, --v))
       return InterpretResult(true, std::to_string(int(A)) + "<=" + std::to_string(int(v)));
     return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
   }
