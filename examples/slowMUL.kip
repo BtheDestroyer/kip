@@ -3,11 +3,11 @@
 
 >start
 FIL 0 $0 $4    ; Clear working RAM
-STR 6 $0       ; Operand A = 6
-STR 7 $1       ; Operand B = 7
+STB 6 $0       ; Operand A = 6
+STB 7 $1       ; Operand B = 7
 
 >mul
-STR *$1 $2     ; Copy value at $1 to $2
+STB *$1 $2     ; Copy value at $1 to $2
 >mul_loop
 ADD *$0 *$3 $3 ; Add value at $0 to value at $3
 SUB *$2 1 $2   ; Decrement value at $2

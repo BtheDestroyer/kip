@@ -2,8 +2,8 @@
 
 >constant 5
 >start
-STR start 0
-STR end 1
-STR constant 2
+STB start 0
+STB end 1
+STB constant 2
 
 >end

@@ -2,10 +2,10 @@
 
 >start
 FIL 0 $0 $40       ; Clear working RAM
-STR $1 $20         ; Starting value X_0
-STR $1 $21         ; Starting value X_1
-STR $22 $0         ; Current write index
-STR $2D $4         ; 1 after final write index
+STB $1 $20         ; Starting value X_0
+STB $1 $21         ; Starting value X_1
+STB $22 $0         ; Current write index
+STB $2D $4         ; 1 after final write index
 
 >fib
 SUB *$0 2 $8       ; Find value of A

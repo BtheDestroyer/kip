@@ -2,8 +2,8 @@
 
 >start
 FIL 0 $0 $4    ; Clear working RAM
-STR 10 $0      ; Operand A = 10
-STR $10 $1     ; Operand B = $10 (16)
+STB 10 $0      ; Operand A = 10
+STB $10 $1     ; Operand B = $10 (16)
 ADD *$0 *$1 $3 ; 10 + $10 (16) = $1A (26)
 
 >output
