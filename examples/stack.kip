@@ -1,4 +1,4 @@
-; Demo kip file that adds 2 numbers
+; Demo kip file that showcases the stack
 
 >start
 FIL 0 $0 $FFFF ; Clear working RAM
