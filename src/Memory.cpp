@@ -222,7 +222,7 @@ namespace kip
     MemoryMap::iterator it = memoryMap.begin();
     while (it != memoryMap.end())
     {
-      if (it->mappedAddr <= address && it->mappedAddr + it->size > address)
+      if (it->mappedAddr <= address && it->mappedAddr + it->size >= address)
       {
         stackPointer = address;
         return true; // Memory is mapped
@@ -239,7 +239,7 @@ namespace kip
     MemoryMap::iterator it = memoryMap.begin();
     while (it != memoryMap.end())
     {
-      if (it->mappedAddr <= address && it->mappedAddr + it->size > address)
+      if (it->mappedAddr <= stackPointer && it->mappedAddr + it->size >= stackPointer)
       {
         address = stackPointer;
         return true; // Memory is mapped
