@@ -1,0 +1,42 @@
+; Demo kip file that adds 2 numbers
+
+>start
+FIL 0 $0 $FFFF ; Clear working RAM
+
+>push_bytes    ; Push values onto stack
+PUB 11         
+PUB 22         
+PUB 33         
+>output_bytes  ; Show stack values
+RDB $FFFB      
+RDB $FFFC      
+RDB $FFFD      
+RDB $FFFE      
+RDB $FFFF      
+>pop_bytes     ; Pop values off of stack
+POB $0         
+POB $1         
+POB $2         
+RDB $0         
+RDB $1         
+RDB $2         
+
+>push_addr     ; Push addresses onto stack
+PUA $AA
+PUA $BB
+PUA $CC
+>output_addr   ; Show stack addresses
+RDA $FFEC
+RDA $FFF0
+RDA $FFF4
+RDA $FFF8
+RDA $FFFC
+>pop_addr      ; Pop addresses off of stack
+POA $4
+POA $8
+POA $B
+RDB $4
+RDB $8
+RDB $B
+
+HLT            ; Ends the program
