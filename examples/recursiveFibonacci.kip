@@ -1,0 +1,58 @@
+; Demo kip file that calculates the fibonacci sequence recursively
+
+>start
+FIL 0 $0 $FFFF    ; Clear working RAM
+PUA output        ; Push return address
+PUA $10           ; Push starting output address
+PUB 10            ; N = 10
+JMP fib           ; Call the fibonacci function
+
+>output
+RDB $19           |
+RDB $18           |
+RDB $17           |
+RDB $16           |
+RDB $15           } Displays RAM [$10,$19]
+RDB $14           |
+RDB $13           |
+RDB $12           |
+RDB $11           |
+RDB $10           |
+HLT               ; Ends the program
+
+>fib              ; Fibonacci function. Stack frame: N (B), output (A), return (A)
+POB $0            ; Pop N
+POA $1            ; Pop output address
+JGT fib_B *$0 1   ; Skip to fib_B if N > 1
+>fib_A
+STB *$0 *$1       ; Write N to the output (return N)
+POA $0            ; Pop return address
+JMP *$0           ; Return
+>fib_B
+PUA *$1           ; Push output address back onto the stack
+DEC $0            ; Decrement N
+PUB *$0           ; Push N - 1 onto the stack
+PUA fib_C         ; Build next stack starting with return address
+INC $1            ; Increment output address
+PUA *$1           ; Push next output address onto the stack
+PUB *$0           ; Push N - 1 onto the stack
+JMP fib           ; First recursive call
+>fib_C
+POB $0            ; Pop N - 1
+POA $1            ; Pop output address
+PUA *$1           ; Push output address back onto the stack
+DEC $0            ; Decrement N - 1
+PUA fib_D         ; Build next stack starting with return address
+ADD *$1 2 $1      ; Add 2 to the output address
+PUA *$1           ; Push next output address onto the stack
+PUB *$0           ; Push N - 2 onto the stack
+JMP fib           ; Second recursive call
+>fib_D
+POA $0            ; Pop output address
+STA *$0 $4        ; Copy ouput address to $4
+INC $4            ; Calculate output address of first recursive call
+STA *$4 $8        ; Copy ouput address of first recursive call to $8
+INC $8            ; Calculate output address of second recursive call
+ADD **$4 **$8 *$0 ; Sum the outputs of both recursive calls and store the result at this function's output
+POA $0            ; Pop return address
+JMP *$0           ; Return
