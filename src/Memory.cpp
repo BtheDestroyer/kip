@@ -14,7 +14,7 @@ namespace kip
     uint32_t size;
     void (*readFunc)(uint32_t offset, uint8_t* out, uint32_t count);
     void (*writeFunc)(uint32_t offset, uint8_t* in, uint32_t count);
-    enum Type {
+    enum class Type {
       DATA,
       FUNC
     } type;
@@ -58,12 +58,12 @@ namespace kip
 
   bool MapMemory(uint8_t* start, uint32_t size, uint32_t mappedStart)
   {
-    return MapMemory({ mappedStart, start, size, nullptr, nullptr, MemoryBlock::DATA });
+    return MapMemory({ mappedStart, start, size, nullptr, nullptr, MemoryBlock::Type::DATA });
   }
 
   bool MapMemory(void (*readFunc)(uint32_t offset, uint8_t* out, uint32_t count), void (*writeFunc)(uint32_t offset, uint8_t* in, uint32_t count), uint32_t size, uint32_t mappedStart)
   {
-    return MapMemory({ mappedStart, nullptr, size, readFunc, writeFunc, MemoryBlock::FUNC });
+    return MapMemory({ mappedStart, nullptr, size, readFunc, writeFunc, MemoryBlock::Type::FUNC });
   }
 
   bool UnmapMemory(uint32_t mappedStart)
@@ -110,10 +110,15 @@ namespace kip
       if (it->mappedAddr <= address && it->mappedAddr + it->size > address)
       {
         uint32_t offset = address - it->mappedAddr;
-        if (it->type == MemoryBlock::DATA)
+        if (it->type == MemoryBlock::Type::DATA)
           it->realAddr[offset] = byte;
-        else if (it->type == MemoryBlock::FUNC)
-          it->writeFunc(offset, &byte, 1);
+        else if (it->type == MemoryBlock::Type::FUNC)
+        {
+          if (it->writeFunc)
+            it->writeFunc(offset, &byte, 1);
+          else
+            return false; // Memory is read-only
+        }
         return true; // Memory found
       }
       if (it->mappedAddr > address)
@@ -131,10 +136,15 @@ namespace kip
       if (it->mappedAddr <= address && it->mappedAddr + it->size > address)
       {
         uint32_t offset = address - it->mappedAddr;
-        if (it->type == MemoryBlock::DATA)
+        if (it->type == MemoryBlock::Type::DATA)
           byte = it->realAddr[offset];
-        else if (it->type == MemoryBlock::FUNC)
-          it->readFunc(offset, &byte, 1);
+        else if (it->type == MemoryBlock::Type::FUNC)
+        {
+          if (it->readFunc)
+            it->readFunc(offset, &byte, 1);
+          else
+            return false; // Memory is write-only
+        }
         return true; // Memory found
       }
       if (it->mappedAddr > address)
@@ -153,10 +163,15 @@ namespace kip
       {
         uint32_t offset = address - it->mappedAddr;
         uint32_t toCopy = std::min(count, it->size - offset);
-        if (it->type == MemoryBlock::DATA)
+        if (it->type == MemoryBlock::Type::DATA)
           std::memcpy(it->realAddr + offset, bytes, toCopy);
-        else if (it->type == MemoryBlock::FUNC)
-          it->writeFunc(offset, bytes, toCopy);
+        else if (it->type == MemoryBlock::Type::FUNC)
+        {
+          if (it->writeFunc)
+            it->writeFunc(offset, bytes, 1);
+          else
+            return false; // Memory is read-only
+        }
         count -= toCopy;
         address += toCopy;
         bytes += toCopy;
@@ -179,10 +194,15 @@ namespace kip
       {
         uint32_t offset = address - it->mappedAddr;
         uint32_t toCopy = std::min(count, it->size - offset);
-        if (it->type == MemoryBlock::DATA)
+        if (it->type == MemoryBlock::Type::DATA)
           std::memcpy(bytes, it->realAddr + offset, toCopy);
-        else if (it->type == MemoryBlock::FUNC)
-          it->readFunc(offset, bytes, toCopy);
+        else if (it->type == MemoryBlock::Type::FUNC)
+        {
+          if (it->readFunc)
+            it->readFunc(offset, bytes, 1);
+          else
+            return false; // Memory is write-only
+        }
         count -= toCopy;
         address += toCopy;
         bytes += toCopy;
