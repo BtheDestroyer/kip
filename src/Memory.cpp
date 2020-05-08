@@ -21,6 +21,7 @@ namespace kip
   };
   typedef std::list<MemoryBlock> MemoryMap;
   MemoryMap memoryMap;
+  uint32_t stackPointer;
 
   bool MapMemory(MemoryBlock newBlock)
   {
@@ -208,6 +209,40 @@ namespace kip
         bytes += toCopy;
         if (count == 0)
           return true; // Coppied all data
+      }
+      if (it->mappedAddr > address)
+        return false; // Memory was not mapped
+      ++it;
+    }
+    return false; // Requested address was not mapped
+  }
+
+  bool SetStackPointer(uint32_t address)
+  {
+    MemoryMap::iterator it = memoryMap.begin();
+    while (it != memoryMap.end())
+    {
+      if (it->mappedAddr <= address && it->mappedAddr + it->size > address)
+      {
+        stackPointer = address;
+        return true; // Memory is mapped
+      }
+      if (it->mappedAddr > address)
+        return false; // Memory was not mapped
+      ++it;
+    }
+    return false; // Requested address was not mapped
+  }
+
+  bool GetStackPointer(uint32_t& address)
+  {
+    MemoryMap::iterator it = memoryMap.begin();
+    while (it != memoryMap.end())
+    {
+      if (it->mappedAddr <= address && it->mappedAddr + it->size > address)
+      {
+        address = stackPointer;
+        return true; // Memory is mapped
       }
       if (it->mappedAddr > address)
         return false; // Memory was not mapped

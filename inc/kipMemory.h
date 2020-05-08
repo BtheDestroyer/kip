@@ -13,4 +13,6 @@ namespace kip
   DLLMODE bool ReadByte(uint32_t address, uint8_t& byte);
   DLLMODE bool WriteBytes(uint32_t address, uint8_t *bytes, uint32_t count);
   DLLMODE bool ReadBytes(uint32_t address, uint8_t* bytes, uint32_t count);
+  DLLMODE bool SetStackPointer(uint32_t address);
+  DLLMODE bool GetStackPointer(uint32_t& address);
 }
