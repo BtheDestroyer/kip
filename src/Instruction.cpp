@@ -676,7 +676,10 @@ namespace kip
     unsigned lnWidth = 0;
     for (size_t c = inst.size() + 1; c > 0; c /= 10)
       ++lnWidth;
-    for (uint32_t i = 0; i < inst.size();)
+    uint32_t i = 0;
+    if (context.labels.find("START") != context.labels.end())
+      i = context.labels["START"];
+    for (; i < inst.size();)
     {
       Instruction& c = inst[i++];
       if (c.id == 0)
