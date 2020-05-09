@@ -46,6 +46,7 @@ namespace kip
     { "PUA", 1, &Instruction::PUA },
     { "POB", 1, &Instruction::POB },
     { "POA", 1, &Instruction::POA },
+    { "CPY", 3, &Instruction::CPY },
   };
 
   uint8_t GetInstructionIndex(std::string instruction)
@@ -423,6 +424,23 @@ namespace kip
       return InterpretResult(true, std::to_string(int(A)) + "<=" + std::to_string(int(v)));
     }
     return InterpretResult(false, "Stack pointer is not mapped post-read (" + std::to_string(s) + ")");
+  }
+
+  InterpretResult Instruction::CPY(uint32_t* line)
+  {
+    uint32_t A = arguments[0].GetAddr();
+    uint32_t B = arguments[1].GetAddr();
+    uint8_t  C = arguments[2].GetByte();
+    if (C > 0)
+    {
+      std::vector<uint8_t> v;
+      v.resize(C);
+      if (!ReadBytes(A, v.data(), C))
+        return InterpretResult(false, "An address in [" + std::to_string(int(A)) + ", " + std::to_string(int(A + C)) + ") is unmapped");
+      if (!WriteBytes(B, v.data(), C))
+        return InterpretResult(false, "An address in [" + std::to_string(int(B)) + ", " + std::to_string(int(B + C)) + ") is unmapped");
+    }
+    return InterpretResult(true, "[" + std::to_string(int(B)) + "," + std::to_string(int(B + C)) + ")<=[" + std::to_string(int(A)) + ", " + std::to_string(int(A + C)) + ")");
   }
 
 
