@@ -34,7 +34,10 @@ namespace kip
   {
   public:
     // Map of label to line
-    typedef std::map<std::string, uint32_t> Context;
+    struct DLLMODE Context
+    {
+      std::map<std::string, uint32_t> labels;
+    };
 
     Instruction(std::string line);
     Instruction(std::string line, Context context);
@@ -77,6 +80,8 @@ namespace kip
   };
 
   DLLMODE InterpretResult InterpretLine(std::string line);
+  DLLMODE std::vector<InterpretResult> BuildContext(Instruction::Context& context, std::vector<std::string>& lines);
+  DLLMODE std::vector<InterpretResult> BuildContextLabels(Instruction::Context& context, std::vector<std::string>& lines);
   DLLMODE std::vector<InterpretResult> InterpretLines(std::vector<std::string> lines);
   DLLMODE std::vector<InterpretResult> InterpretInstructions(std::vector<Instruction> inst);
   DLLMODE std::vector<InterpretResult> InterpretInstructions(std::vector<Instruction> inst, Instruction::Context context);

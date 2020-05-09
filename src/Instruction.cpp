@@ -529,8 +529,8 @@ namespace kip
           A.data = std::stoi(split[i].substr(1), nullptr, 2);
         else if (split[i][0] == '#') // Octal
           A.data = std::stoi(split[i].substr(1), nullptr, 8);
-        else if (context.find(split[i]) != context.end()) // Label
-          A.data = context[split[i]];
+        else if (context.labels.find(split[i]) != context.labels.end()) // Label
+          A.data = context.labels[split[i]];
         else // Decimal value
           A.data = std::stoi(split[i], nullptr, 10);
         arguments.push_back(A);
@@ -561,9 +561,27 @@ namespace kip
     return InterpretResult(false, "Unknown instruction: " + line.substr(0, line.find(' ')));
   }
 
-  std::vector<InterpretResult> InterpretLines(std::vector<std::string> lines)
+  std::vector<InterpretResult> BuildContext(Instruction::Context& context, std::vector<std::string>& lines)
   {
-    Instruction::Context context;
+    std::vector<InterpretResult> results;
+    for (InterpretResult sr : BuildContextLabels(context, lines))
+    {
+      results.push_back(sr);
+      if (!sr.success)
+      {
+        results.push_back(InterpretResult(false, "Failed to build context due to error in label parsing"));
+        return results;
+      }
+    }
+    results.push_back(InterpretResult(true, "Built context successfully"));
+    return results;
+  }
+
+  std::vector<InterpretResult> BuildContextLabels(Instruction::Context& context, std::vector<std::string>& lines)
+  {
+    std::vector<InterpretResult> results;
+    context.labels.clear();
+
     for (uint32_t i = 0; i < lines.size(); ++i)
     {
       std::string& line = lines[i];
@@ -585,7 +603,7 @@ namespace kip
           return results;
         }
         std::string label = line.substr(0, line.find_first_of(' '));
-        if (context.find(label) != context.end())
+        if (context.labels.find(label) != context.labels.end())
         {
           std::vector<InterpretResult> results;
           results.push_back(InterpretResult(false, "Compilation error: Redefinition of label \"" + line.substr(1) + "\" at line " + std::to_string(i)));
@@ -602,10 +620,21 @@ namespace kip
           for (size_t j = 0; j < line.size() && line[j] >= '0' && line[j] <= '9'; ++j)
             v = v * 10 + line[j] - '0';
         }
-        context[label] = v;
+        context.labels[label] = v;
         line = "";
       }
     }
+
+    results.push_back(InterpretResult(true, "Built context labels successfully"));
+    return results;
+  }
+
+  std::vector<InterpretResult> InterpretLines(std::vector<std::string> lines)
+  {
+    Instruction::Context context;
+    std::vector<InterpretResult> bcr = BuildContext(context, lines);
+    if (!bcr.back().success)
+      return bcr;
     std::vector<Instruction> instructions;
     for (uint32_t i = 0; i < lines.size(); ++i)
     {
