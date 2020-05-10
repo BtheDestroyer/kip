@@ -446,13 +446,11 @@ namespace kip
     uint8_t  A = arguments[0].GetByte();
     if (!GetStackPointer(s))
       return InterpretResult(false, "Stack pointer is not mapped");
-    if (WriteByte(s - 1, A))
-    {
-      if (!SetStackPointer(s - 1))
-        return InterpretResult(false, "Stack pointer is not mapped post-decrement (" + std::to_string(s - 1) + ")");
-      return InterpretResult(true, std::to_string(int(s - 1)) + "<=" + std::to_string(int(A)));
-    }
-    return InterpretResult(false, "Stack pointer is not mapped post-write (" + std::to_string(s - 1) + ")");
+    if (!WriteByte(s - 1, A))
+      return InterpretResult(false, "Stack pointer is not mapped post-write (" + std::to_string(s - 1) + ")");
+    if (!SetStackPointer(s - 1))
+      return InterpretResult(false, "Stack pointer is not mapped post-decrement (" + std::to_string(s - 1) + ")");
+    return InterpretResult(true, std::to_string(int(s - 1)) + "<=" + std::to_string(int(A)));
   }
 
   InterpretResult Instruction::PUA(uint32_t* line)
@@ -461,13 +459,11 @@ namespace kip
     uint32_t A = arguments[0].GetAddr();
     if (!GetStackPointer(s))
       return InterpretResult(false, "Stack pointer is not mapped");
-    if (WriteBytes(s - 4, (uint8_t*)(&A), 4))
-    {
-      if (!SetStackPointer(s - 4))
-        return InterpretResult(false, "Stack pointer is not mapped post-decrement (" + std::to_string(s - 4) + ")");
-      return InterpretResult(true, std::to_string(int(s - 4)) + "<=" + std::to_string(int(A)));
-    }
-    return InterpretResult(false, "Stack pointer is not mapped post-write (" + std::to_string(s - 4) + ")");
+    if (!WriteBytes(s - 4, (uint8_t*)(&A), 4))
+      return InterpretResult(false, "Stack pointer is not mapped post-write (" + std::to_string(s - 4) + ")");
+    if (!SetStackPointer(s - 4))
+      return InterpretResult(false, "Stack pointer is not mapped post-decrement (" + std::to_string(s - 4) + ")");
+    return InterpretResult(true, std::to_string(int(s - 4)) + "<=" + std::to_string(int(A)));
   }
 
   InterpretResult Instruction::POB(uint32_t* line)
@@ -477,15 +473,13 @@ namespace kip
     uint8_t  v = 0;
     if (!GetStackPointer(s))
       return InterpretResult(false, "Stack pointer is not mapped");
-    if (ReadByte(s, v))
-    {
-      if (!WriteByte(A, v))
-        return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
-      if (!SetStackPointer(s + 1))
-        return InterpretResult(false, "Stack pointer is not mapped post-increment (" + std::to_string(s + 1) + ")");
-      return InterpretResult(true, std::to_string(int(A)) + "<=" + std::to_string(int(v)));
-    }
-    return InterpretResult(false, "Stack pointer is not mapped post-read (" + std::to_string(s) + ")");
+    if (!ReadByte(s, v))
+      return InterpretResult(false, "Stack pointer is not mapped post-read (" + std::to_string(s) + ")");
+    if (!WriteByte(A, v))
+      return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
+    if (!SetStackPointer(s + 1))
+      return InterpretResult(false, "Stack pointer is not mapped post-increment (" + std::to_string(s + 1) + ")");
+    return InterpretResult(true, std::to_string(int(A)) + "<=" + std::to_string(int(v)));
   }
 
   InterpretResult Instruction::POA(uint32_t* line)
@@ -495,15 +489,13 @@ namespace kip
     uint32_t v = 0;
     if (!GetStackPointer(s))
       return InterpretResult(false, "Stack pointer is not mapped");
-    if (ReadBytes(s, (uint8_t*)(&v), 4))
-    {
-      if (!WriteBytes(A, (uint8_t*)(&v), 4))
-        return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
-      if (!SetStackPointer(s + 4))
-        return InterpretResult(false, "Stack pointer is not mapped post-increment (" + std::to_string(s + 4) + ")");
-      return InterpretResult(true, std::to_string(int(A)) + "<=" + std::to_string(int(v)));
-    }
-    return InterpretResult(false, "Stack pointer is not mapped post-read (" + std::to_string(s) + ")");
+    if (!ReadBytes(s, (uint8_t*)(&v), 4))
+      return InterpretResult(false, "Stack pointer is not mapped post-read (" + std::to_string(s) + ")");
+    if (!WriteBytes(A, (uint8_t*)(&v), 4))
+      return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
+    if (!SetStackPointer(s + 4))
+      return InterpretResult(false, "Stack pointer is not mapped post-increment (" + std::to_string(s + 4) + ")");
+    return InterpretResult(true, std::to_string(int(A)) + "<=" + std::to_string(int(v)));
   }
 
   InterpretResult Instruction::CPY(uint32_t* line)
