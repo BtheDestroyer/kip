@@ -596,11 +596,7 @@ namespace kip
     std::vector<std::string> split;
     while (line.size() > 0)
     {
-      char commentChars[] = { ';', '|', '?', '}' };
-      size_t comment = line.size();
-      for (unsigned i = 0; i < 4; ++i)
-        comment = std::min(comment, line.find_first_of(commentChars[i]));
-      line = line.substr(0, comment);
+      line = RemoveComments(line);
       std::string newPart = line.substr(0, line.find(' '));
       line = line.substr(std::min(newPart.size() + 1, line.size()));
       if (newPart.size() > 0)
@@ -645,6 +641,15 @@ namespace kip
   InterpretResult::operator bool() const
   {
     return success;
+  }
+
+  std::string RemoveComments(std::string line)
+  {
+    char commentChars[] = { ';', '|', '?', '}' };
+    size_t comment = line.size();
+    for (unsigned i = 0; i < 4; ++i)
+      comment = std::min(comment, line.find_first_of(commentChars[i]));
+    return line.substr(0, comment);
   }
 
   InterpretResult InterpretLine(std::string line)
@@ -749,6 +754,7 @@ namespace kip
     for (uint32_t i = 0; i < lines.size(); ++i)
     {
       std::string& line = lines[i];
+      line = RemoveComments(line);
       size_t p = line.find_first_not_of(' ');
       if (p != -1 && p != 0)
         line = line.substr(p);
@@ -768,7 +774,9 @@ namespace kip
         std::string label = line.substr(0, line.find_first_of(' '));
         line = line.substr(label.size());
         p = line.find_first_not_of(' ');
-        if (p != -1 && p != 0)
+        if (p == -1)
+          line = "";
+        else if (p != 0)
           line = line.substr(p);
         int v = i + 1;
         if (line.size() > 0)

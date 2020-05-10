@@ -88,6 +88,7 @@ namespace kip
     std::vector<Argument> arguments;
   };
 
+  DLLMODE std::string RemoveComments(std::string line);
   DLLMODE InterpretResult InterpretLine(std::string line);
   DLLMODE InterpretResult LoadFile(std::string filename, std::vector<std::string>& lines);
   DLLMODE std::vector<InterpretResult> BuildContext(Instruction::Context& context, std::vector<std::string>& lines);
