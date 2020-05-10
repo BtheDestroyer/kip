@@ -22,16 +22,20 @@ namespace kip
     { "RDB", 1, &Instruction::RDB },
     { "RDA", 1, &Instruction::RDA },
     { "FIL", 3, &Instruction::FIL },
-    { "ADD", 3, &Instruction::ADD },
-    { "SUB", 3, &Instruction::SUB },
+    { "ADB", 3, &Instruction::ADB },
+    { "ADA", 3, &Instruction::ADA },
+    { "SBB", 3, &Instruction::SBB },
+    { "SBA", 3, &Instruction::SBA },
     { "JMP", 1, &Instruction::JMP },
     { "JEQ", 3, &Instruction::JEQ },
     { "JNE", 3, &Instruction::JNE },
     { "JGT", 3, &Instruction::JGT },
     { "JLT", 3, &Instruction::JLT },
-    { "MUL", 3, &Instruction::MUL },
-    { "DIV", 3, &Instruction::DIV },
-    { "MOD", 3, &Instruction::MOD },
+    { "MLB", 3, &Instruction::MLB },
+    { "MLA", 3, &Instruction::MLA },
+    { "DVB", 3, &Instruction::DVB },
+    { "DVA", 3, &Instruction::DVA },
+    { "MDA", 3, &Instruction::MDB },
     { "BLS", 3, &Instruction::BLS },
     { "BRS", 3, &Instruction::BRS },
     { "ROL", 3, &Instruction::ROL },
@@ -41,8 +45,10 @@ namespace kip
     { "XOR", 3, &Instruction::XOR },
     { "NOT", 2, &Instruction::NOT },
     { "HLT", 0, &Instruction::HLT },
-    { "INC", 1, &Instruction::INC },
-    { "DEC", 1, &Instruction::DEC },
+    { "INB", 1, &Instruction::INB },
+    { "INA", 1, &Instruction::INA },
+    { "DCB", 1, &Instruction::DCB },
+    { "DCA", 1, &Instruction::DCA },
     { "PUB", 1, &Instruction::PUB },
     { "PUA", 1, &Instruction::PUA },
     { "POB", 1, &Instruction::POB },
@@ -107,7 +113,7 @@ namespace kip
     return InterpretResult(true, "[" + std::to_string(int(B)) + ", " + std::to_string(int(B + C)) + ")<=" + std::to_string(int(A)));
   }
 
-  InterpretResult Instruction::ADD(uint32_t* line)
+  InterpretResult Instruction::ADB(uint32_t* line)
   {
     uint8_t  A = arguments[0].GetByte();
     uint8_t  B = arguments[1].GetByte();
@@ -117,13 +123,35 @@ namespace kip
     return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
   }
 
-  InterpretResult Instruction::SUB(uint32_t* line)
+  InterpretResult Instruction::ADA(uint32_t* line)
+  {
+    uint32_t A = arguments[0].GetAddr();
+    uint32_t B = arguments[1].GetAddr();
+    uint32_t C = arguments[2].GetAddr();
+    uint32_t v = A + B;
+    if (WriteBytes(C, (uint8_t*)&v, 4))
+      return InterpretResult(true, std::to_string(int(C)) + "<=" + std::to_string(int(v)));
+    return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
+  }
+
+  InterpretResult Instruction::SBB(uint32_t* line)
   {
     uint8_t  A = arguments[0].GetByte();
     uint8_t  B = arguments[1].GetByte();
     uint32_t C = arguments[2].GetAddr();
     if (WriteByte(C, A - B))
       return InterpretResult(true, std::to_string(int(C)) + "<=" + std::to_string(int(A - B)));
+    return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
+  }
+
+  InterpretResult Instruction::SBA(uint32_t* line)
+  {
+    uint32_t A = arguments[0].GetAddr();
+    uint32_t B = arguments[1].GetAddr();
+    uint32_t C = arguments[2].GetAddr();
+    uint32_t v = A - B;
+    if (WriteBytes(C, (uint8_t*)&v, 4))
+      return InterpretResult(true, std::to_string(int(C)) + "<=" + std::to_string(int(v)));
     return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
   }
 
@@ -219,7 +247,7 @@ namespace kip
     return InterpretResult(true, "pc<=" + std::to_string(*line));
   }
 
-  InterpretResult Instruction::MUL(uint32_t* line)
+  InterpretResult Instruction::MLB(uint32_t* line)
   {
     uint8_t  A = arguments[0].GetByte();
     uint8_t  B = arguments[1].GetByte();
@@ -229,7 +257,18 @@ namespace kip
     return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
   }
 
-  InterpretResult Instruction::DIV(uint32_t* line)
+  InterpretResult Instruction::MLA(uint32_t* line)
+  {
+    uint32_t A = arguments[0].GetAddr();
+    uint32_t B = arguments[1].GetAddr();
+    uint32_t C = arguments[2].GetAddr();
+    uint32_t v = A * B;
+    if (WriteBytes(C, (uint8_t*)&v, 4))
+      return InterpretResult(true, std::to_string(int(C)) + "<=" + std::to_string(int(v)));
+    return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
+  }
+
+  InterpretResult Instruction::DVB(uint32_t* line)
   {
     uint8_t  A = arguments[0].GetByte();
     uint8_t  B = arguments[1].GetByte();
@@ -239,13 +278,35 @@ namespace kip
     return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
   }
 
-  InterpretResult Instruction::MOD(uint32_t* line)
+  InterpretResult Instruction::DVA(uint32_t* line)
+  {
+    uint32_t A = arguments[0].GetAddr();
+    uint32_t B = arguments[1].GetAddr();
+    uint32_t C = arguments[2].GetAddr();
+    uint32_t v = A / B;
+    if (WriteBytes(C, (uint8_t*)&v, 4))
+      return InterpretResult(true, std::to_string(int(C)) + "<=" + std::to_string(int(v)));
+    return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
+  }
+
+  InterpretResult Instruction::MDB(uint32_t* line)
   {
     uint8_t  A = arguments[0].GetByte();
     uint8_t  B = arguments[1].GetByte();
     uint32_t C = arguments[2].GetAddr();
     if (WriteByte(C, A % B))
       return InterpretResult(true, std::to_string(int(C)) + "<=" + std::to_string(int(A % B)));
+    return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
+  }
+
+  InterpretResult Instruction::MDA(uint32_t* line)
+  {
+    uint32_t A = arguments[0].GetAddr();
+    uint32_t B = arguments[1].GetAddr();
+    uint32_t C = arguments[2].GetAddr();
+    uint32_t v = A % B;
+    if (WriteBytes(C, (uint8_t*)&v, 4))
+      return InterpretResult(true, std::to_string(int(C)) + "<=" + std::to_string(int(v)));
     return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
   }
 
@@ -343,7 +404,7 @@ namespace kip
     return InterpretResult(true, "Halted program");
   }
 
-  InterpretResult Instruction::INC(uint32_t* line)
+  InterpretResult Instruction::INB(uint32_t* line)
   {
     uint32_t A = arguments[0].GetAddr();
     uint8_t  v;
@@ -352,11 +413,29 @@ namespace kip
     return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
   }
 
-  InterpretResult Instruction::DEC(uint32_t* line)
+  InterpretResult Instruction::INA(uint32_t* line)
+  {
+    uint32_t A = arguments[0].GetAddr();
+    uint32_t v;
+    if (ReadBytes(A, (uint8_t*)(&v), 4) && WriteBytes(A, (uint8_t*)(&++v), 4))
+      return InterpretResult(true, std::to_string(int(A)) + "<=" + std::to_string(int(v)));
+    return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
+  }
+
+  InterpretResult Instruction::DCB(uint32_t* line)
   {
     uint32_t A = arguments[0].GetAddr();
     uint8_t  v;
     if (ReadByte(A, v) && WriteByte(A, --v))
+      return InterpretResult(true, std::to_string(int(A)) + "<=" + std::to_string(int(v)));
+    return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
+  }
+
+  InterpretResult Instruction::DCA(uint32_t* line)
+  {
+    uint32_t A = arguments[0].GetAddr();
+    uint32_t v;
+    if (ReadBytes(A, (uint8_t*)(&v), 4) && WriteBytes(A, (uint8_t*)(&--v), 4))
       return InterpretResult(true, std::to_string(int(A)) + "<=" + std::to_string(int(v)));
     return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
   }
