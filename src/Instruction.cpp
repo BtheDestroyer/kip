@@ -632,11 +632,18 @@ namespace kip
         if (p != -1 && p != 0)
           line = line.substr(p);
         int v = i + 1;
-        if (line.size() > 0 && line[0] >= '0' && line[0] <= '9')
+        if (line.size() > 0)
         {
-          v = 0;
-          for (size_t j = 0; j < line.size() && line[j] >= '0' && line[j] <= '9'; ++j)
-            v = v * 10 + line[j] - '0';
+          if (line[0] == '$') // Hex value
+            v = std::stoi(line.substr(1), nullptr, 16);
+          else if (line[0] == ':') // Binary value
+            v = std::stoi(line.substr(1), nullptr, 2);
+          else if (line[0] == '#') // Octal
+            v = std::stoi(line.substr(1), nullptr, 8);
+          else if (context.labels.find(line) != context.labels.end()) // Label
+            v = context.labels[line];
+          else // Decimal value
+            v = std::stoi(line, nullptr, 10);
         }
         context.labels[label] = v;
         line = "";
