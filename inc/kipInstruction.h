@@ -95,10 +95,10 @@ namespace kip
   DLLMODE std::vector<InterpretResult> BuildContext(Instruction::Context& context, std::vector<std::string>& lines);
   DLLMODE std::vector<InterpretResult> BuildContextImports(Instruction::Context& context, std::vector<std::string>& lines);
   DLLMODE std::vector<InterpretResult> BuildContextLabels(Instruction::Context& context, std::vector<std::string>& lines);
-  DLLMODE std::vector<InterpretResult> InterpretLines(std::vector<std::string> lines);
-  DLLMODE std::vector<InterpretResult> InterpretLines(std::vector<std::string> lines, std::string folder);
-  DLLMODE std::vector<InterpretResult> InterpretInstructions(std::vector<Instruction> inst);
-  DLLMODE std::vector<InterpretResult> InterpretInstructions(std::vector<Instruction> inst, Instruction::Context context);
+  DLLMODE std::vector<InterpretResult> InterpretLines(std::vector<std::string> &lines);
+  DLLMODE std::vector<InterpretResult> InterpretLines(std::vector<std::string> &lines, std::string folder);
+  DLLMODE std::vector<InterpretResult> InterpretInstructions(std::vector<Instruction> &inst);
+  DLLMODE std::vector<InterpretResult> InterpretInstructions(std::vector<Instruction> &inst, Instruction::Context &context);
 }
 
 #pragma warning(pop)

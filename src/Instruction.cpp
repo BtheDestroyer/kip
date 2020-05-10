@@ -811,12 +811,12 @@ namespace kip
     return results;
   }
 
-  std::vector<InterpretResult> InterpretLines(std::vector<std::string> lines)
+  std::vector<InterpretResult> InterpretLines(std::vector<std::string> &lines)
   {
     return InterpretLines(lines, "");
   }
 
-  std::vector<InterpretResult> InterpretLines(std::vector<std::string> lines, std::string folder)
+  std::vector<InterpretResult> InterpretLines(std::vector<std::string> &lines, std::string folder)
   {
     Instruction::Context context;
     context.folder = folder;
@@ -835,12 +835,13 @@ namespace kip
     return InterpretInstructions(instructions, context);
   }
 
-  std::vector<InterpretResult> InterpretInstructions(std::vector<Instruction> inst)
+  std::vector<InterpretResult> InterpretInstructions(std::vector<Instruction> &inst)
   {
-    return InterpretInstructions(inst, Instruction::Context());
+    Instruction::Context c;
+    return InterpretInstructions(inst, c);
   }
 
-  std::vector<InterpretResult> InterpretInstructions(std::vector<Instruction> inst, Instruction::Context context)
+  std::vector<InterpretResult> InterpretInstructions(std::vector<Instruction> &inst, Instruction::Context &context)
   {
     std::vector<InterpretResult> r;
     unsigned lnWidth = 0;

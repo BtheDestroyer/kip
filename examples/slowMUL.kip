@@ -7,10 +7,10 @@ STB 6 $0       ; Operand A = 6
 STB 7 $1       ; Operand B = 7
 
 >mul
-STB *$1 $2     ; Copy value at $1 to $2
+STB *$1 $2            ; Copy value at $1 to $2
 >mul_loop
-ADB *$0 *$3 $3 ; Add value at $0 to value at $3
-SBB *$2 1 $2   ; Decrement value at $2
+ADB *$0 *$3 $3        ; Add value at $0 to value at $3
+SBB *$2 1 $2          ; Decrement value at $2
 JNE mul_loop *$2 0    ; Jump back to line 7 if $2 isn't 0
 
 >mul_real
