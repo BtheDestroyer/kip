@@ -47,7 +47,7 @@ namespace kip
       if (newBlock.mappedAddr < it->mappedAddr && newBlock.mappedAddr + newBlock.size >= it->mappedAddr + it->size)
         return false; // Couldn't map. New block contains existing block
       MemoryMap::iterator prev = it++;
-      if (it->mappedAddr > newBlock.mappedAddr + newBlock.size)
+      if (it != memoryMap.end() && it->mappedAddr > newBlock.mappedAddr + newBlock.size)
       {
         memoryMap.insert(prev, newBlock);
         return true; // Mapped to new middle block
