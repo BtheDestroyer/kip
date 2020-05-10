@@ -1,0 +1,6 @@
+; Parent file to test importing
+
+<child.kip
+
+RDB $0
+HLT

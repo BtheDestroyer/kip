@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <string>
 #include <vector>
+#include <fstream>
 #include <sstream>
 
 #include "kipInstruction.h"
@@ -579,9 +580,35 @@ namespace kip
     return InterpretResult(false, "Unknown instruction: " + line.substr(0, line.find(' ')));
   }
 
+  InterpretResult LoadFile(std::string filename, std::vector<std::string>& lines)
+  {
+    std::ifstream file(filename);
+    if (file.is_open())
+    {
+      char line[2048];
+      while (!file.eof())
+      {
+        file.getline(line, 2048);
+        lines.push_back(line);
+      }
+      file.close();
+      return InterpretResult(true, "Loaded " + filename);
+    }
+    return InterpretResult(false, "Could not open file " + filename);
+  }
+
   std::vector<InterpretResult> BuildContext(Instruction::Context& context, std::vector<std::string>& lines)
   {
     std::vector<InterpretResult> results;
+    for (InterpretResult sr : BuildContextImports(context, lines))
+    {
+      results.push_back(sr);
+      if (!sr.success)
+      {
+        results.push_back(InterpretResult(false, "Failed to build context due to error in import parsing"));
+        return results;
+      }
+    }
     for (InterpretResult sr : BuildContextLabels(context, lines))
     {
       results.push_back(sr);
@@ -592,6 +619,46 @@ namespace kip
       }
     }
     results.push_back(InterpretResult(true, "Built context successfully"));
+    return results;
+  }
+
+  std::vector<InterpretResult> BuildContextImports(Instruction::Context& context, std::vector<std::string>& lines)
+  {
+    std::vector<InterpretResult> results;
+
+    int i = 1;
+    for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); ++it, ++i)
+    {
+      std::string& line = *it;
+      size_t p = line.find_first_not_of(' ');
+      if (p != -1 && p != 0)
+        line = line.substr(p);
+      if (line.size() > 0 && line[0] == '<')
+      {
+        line = line.substr(1);
+        p = line.find_first_not_of(' ');
+        if (p != -1 && p != 0)
+          line = line.substr(p);
+        if (line.size() == 0)
+        {
+          results.push_back(InterpretResult(false, "Compilation error: No import filename at line " + std::to_string(i)));
+          return results;
+        }
+        std::vector<std::string> newlines;
+        results.push_back(LoadFile(context.folder + "\\" + line, newlines));
+        if (!results.back().success)
+          return results;
+        line = "";
+        if (newlines.size() > 0)
+        {
+          lines.insert(it, newlines.begin(), newlines.end());
+          it = lines.begin();
+          i = 0;
+        }
+      }
+    }
+
+    results.push_back(InterpretResult(true, "Imported files successfully"));
     return results;
   }
 
@@ -616,7 +683,6 @@ namespace kip
           line = line.substr(p);
         if (line.size() == 0)
         {
-          std::vector<InterpretResult> results;
           results.push_back(InterpretResult(false, "Compilation error: No label name at line " + std::to_string(i)));
           return results;
         }
@@ -650,7 +716,13 @@ namespace kip
 
   std::vector<InterpretResult> InterpretLines(std::vector<std::string> lines)
   {
+    return InterpretLines(lines, "");
+  }
+
+  std::vector<InterpretResult> InterpretLines(std::vector<std::string> lines, std::string folder)
+  {
     Instruction::Context context;
+    context.folder = folder;
     std::vector<InterpretResult> bcr = BuildContext(context, lines);
     if (!bcr.back().success)
       return bcr;

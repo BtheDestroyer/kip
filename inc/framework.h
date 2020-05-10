@@ -5,3 +5,4 @@
 #include <windows.h>
 
 #undef min // why tf does windows.h define this?
+#undef max // why tf does windows.h define this?

@@ -1,0 +1,3 @@
+; Child file to be imported
+
+STB $FF $0
