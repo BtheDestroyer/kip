@@ -2,14 +2,12 @@
 
 >start
 FIL 0 $0 $FFFF ; Clear working RAM
-PUA post_func  ; Push return address
 PUB $11        ; Push first argument
 PUB $22        ; Push second argument
-JMP func       ; Call function
->post_func
+CAL func       ; Call function
 POB $0         ; Pop return value
 >normal_add
-ADD $11 $22 $1 ; Should do the same as lines [5,9]
+ADB $11 $22 $1 ; Should do the same as lines [5,8]
 
 >output
 RDB $0         ; Read output from function
@@ -17,9 +15,9 @@ RDB $1         ; Read output from normal add
 HLT            ; Ends the program
 
 >func          ; Start of function. Sums 2 values on stack and returns the result
-POB $0         ; Pop first argument
-POB $1         ; Pop second argument
-POA $3         ; Pop return address
-ADD *$0 *$1 $2 ; Add arguments
-PUB *$2        ; Push return value
-JMP *$3        ; Return
+POA $0         ; Pop return address
+POB $4         ; Pop first argument
+POB $5         ; Pop second argument
+ADB *$4 *$5 $6 ; Add arguments
+PUB *$6        ; Push return value
+JMP *$0        ; Return
