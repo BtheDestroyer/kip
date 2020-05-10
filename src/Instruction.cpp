@@ -621,12 +621,6 @@ namespace kip
           return results;
         }
         std::string label = line.substr(0, line.find_first_of(' '));
-        if (context.labels.find(label) != context.labels.end())
-        {
-          std::vector<InterpretResult> results;
-          results.push_back(InterpretResult(false, "Compilation error: Redefinition of label \"" + line.substr(1) + "\" at line " + std::to_string(i)));
-          return results;
-        }
         line = line.substr(label.size());
         p = line.find_first_not_of(' ');
         if (p != -1 && p != 0)
