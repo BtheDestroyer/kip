@@ -16,7 +16,7 @@ namespace kip
     const uint8_t argumentCount;
     InterpretResult (Instruction::*function)(uint32_t* line);
   } instructionTable[] = {
-    { "???", 0, nullptr },
+    { "", 0, nullptr },
     { "STB", 2, &Instruction::STB },
     { "STA", 2, &Instruction::STA },
     { "RDB", 1, &Instruction::RDB },
@@ -54,6 +54,7 @@ namespace kip
     { "POB", 1, &Instruction::POB },
     { "POA", 1, &Instruction::POA },
     { "CPY", 3, &Instruction::CPY },
+    { "CAL", 1, &Instruction::CAL },
   };
 
   uint8_t GetInstructionIndex(std::string instruction)
@@ -513,6 +514,23 @@ namespace kip
         return InterpretResult(false, "An address in [" + std::to_string(int(B)) + ", " + std::to_string(int(B + C)) + ") is unmapped");
     }
     return InterpretResult(true, "[" + std::to_string(int(B)) + "," + std::to_string(int(B + C)) + ")<=[" + std::to_string(int(A)) + ", " + std::to_string(int(A + C)) + ")");
+  }
+
+  InterpretResult Instruction::CAL(uint32_t* line)
+  {
+    uint32_t s = 0;
+    uint32_t A = arguments[0].GetAddr();
+    uint32_t next = *line + 1;
+    if (!GetStackPointer(s))
+      return InterpretResult(false, "Stack pointer is not mapped");
+    if (!WriteBytes(s - 4, (uint8_t*)(&next), 4))
+      return InterpretResult(false, "Stack pointer is not mapped post-write (" + std::to_string(s - 4) + ")");
+    if (!SetStackPointer(s - 4))
+      return InterpretResult(false, "Stack pointer is not mapped post-decrement (" + std::to_string(s - 4) + ")");
+    if (!line)
+      return InterpretResult(false, std::string(instructionTable[id].string) + " cannot be run without context");
+    *line = A - 1;
+    return InterpretResult(true, std::to_string(int(s - 4)) + "<=" + std::to_string(int(next)) + ";  pc <= " + std::to_string(*line));
   }
 
 

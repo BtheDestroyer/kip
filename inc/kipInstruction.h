@@ -83,6 +83,7 @@ namespace kip
     InterpretResult POB(uint32_t* line);
     InterpretResult POA(uint32_t* line);
     InterpretResult CPY(uint32_t* line);
+    InterpretResult CAL(uint32_t* line);
 
     uint8_t id;
     std::vector<Argument> arguments;
