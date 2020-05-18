@@ -46,10 +46,10 @@ namespace kip
         return false; // Couldn't map. End position has already been mapped
       if (newBlock.mappedAddr < it->mappedAddr && newBlock.mappedAddr + newBlock.size >= it->mappedAddr + it->size)
         return false; // Couldn't map. New block contains existing block
-      MemoryMap::iterator prev = it++;
-      if (it != memoryMap.end() && it->mappedAddr > newBlock.mappedAddr + newBlock.size)
+      ++it;
+      if (it != memoryMap.end() && it->mappedAddr >= newBlock.mappedAddr + newBlock.size)
       {
-        memoryMap.insert(prev, newBlock);
+        memoryMap.insert(it, newBlock);
         return true; // Mapped to new middle block
       }
     }
