@@ -14,47 +14,48 @@ namespace kip
   const struct {
     const char* const string;
     const uint8_t argumentCount;
-    InterpretResult (Instruction::*function)(uint32_t* line);
+    InterpretResult(Instruction::* function)(uint32_t* line);
+    uint8_t verbosity; // Lower numbers are higher priority
   } instructionTable[] = {
-    { "", 0, nullptr },
-    { "STB", 2, &Instruction::STB },
-    { "STA", 2, &Instruction::STA },
-    { "RDB", 1, &Instruction::RDB },
-    { "RDA", 1, &Instruction::RDA },
-    { "FIL", 3, &Instruction::FIL },
-    { "ADB", 3, &Instruction::ADB },
-    { "ADA", 3, &Instruction::ADA },
-    { "SBB", 3, &Instruction::SBB },
-    { "SBA", 3, &Instruction::SBA },
-    { "JMP", 1, &Instruction::JMP },
-    { "JEQ", 3, &Instruction::JEQ },
-    { "JNE", 3, &Instruction::JNE },
-    { "JGT", 3, &Instruction::JGT },
-    { "JLT", 3, &Instruction::JLT },
-    { "MLB", 3, &Instruction::MLB },
-    { "MLA", 3, &Instruction::MLA },
-    { "DVB", 3, &Instruction::DVB },
-    { "DVA", 3, &Instruction::DVA },
-    { "MDA", 3, &Instruction::MDB },
-    { "BLS", 3, &Instruction::BLS },
-    { "BRS", 3, &Instruction::BRS },
-    { "ROL", 3, &Instruction::ROL },
-    { "ROR", 3, &Instruction::ROR },
-    { "AND", 3, &Instruction::AND },
-    { "BOR", 3, &Instruction::BOR },
-    { "XOR", 3, &Instruction::XOR },
-    { "NOT", 2, &Instruction::NOT },
-    { "HLT", 0, &Instruction::HLT },
-    { "INB", 1, &Instruction::INB },
-    { "INA", 1, &Instruction::INA },
-    { "DCB", 1, &Instruction::DCB },
-    { "DCA", 1, &Instruction::DCA },
-    { "PUB", 1, &Instruction::PUB },
-    { "PUA", 1, &Instruction::PUA },
-    { "POB", 1, &Instruction::POB },
-    { "POA", 1, &Instruction::POA },
-    { "CPY", 3, &Instruction::CPY },
-    { "CAL", 1, &Instruction::CAL },
+    { "", 0, nullptr, 255 },
+    { "STB", 2, &Instruction::STB, 200 },
+    { "STA", 2, &Instruction::STA, 200 },
+    { "RDB", 1, &Instruction::RDB, 0   },
+    { "RDA", 1, &Instruction::RDA, 0   },
+    { "FIL", 3, &Instruction::FIL, 150 },
+    { "ADB", 3, &Instruction::ADB, 150 },
+    { "ADA", 3, &Instruction::ADA, 150 },
+    { "SBB", 3, &Instruction::SBB, 150 },
+    { "SBA", 3, &Instruction::SBA, 150 },
+    { "JMP", 1, &Instruction::JMP, 100 },
+    { "JEQ", 3, &Instruction::JEQ, 100 },
+    { "JNE", 3, &Instruction::JNE, 100 },
+    { "JGT", 3, &Instruction::JGT, 100 },
+    { "JLT", 3, &Instruction::JLT, 100 },
+    { "MLB", 3, &Instruction::MLB, 150 },
+    { "MLA", 3, &Instruction::MLA, 150 },
+    { "DVB", 3, &Instruction::DVB, 150 },
+    { "DVA", 3, &Instruction::DVA, 150 },
+    { "MDA", 3, &Instruction::MDB, 150 },
+    { "BLS", 3, &Instruction::BLS, 150 },
+    { "BRS", 3, &Instruction::BRS, 150 },
+    { "ROL", 3, &Instruction::ROL, 150 },
+    { "ROR", 3, &Instruction::ROR, 150 },
+    { "AND", 3, &Instruction::AND, 150 },
+    { "BOR", 3, &Instruction::BOR, 150 },
+    { "XOR", 3, &Instruction::XOR, 150 },
+    { "NOT", 2, &Instruction::NOT, 150 },
+    { "HLT", 0, &Instruction::HLT, 10  },
+    { "INB", 1, &Instruction::INB, 150 },
+    { "INA", 1, &Instruction::INA, 150 },
+    { "DCB", 1, &Instruction::DCB, 150 },
+    { "DCA", 1, &Instruction::DCA, 150 },
+    { "PUB", 1, &Instruction::PUB, 120 },
+    { "PUA", 1, &Instruction::PUA, 120 },
+    { "POB", 1, &Instruction::POB, 120 },
+    { "POA", 1, &Instruction::POA, 120 },
+    { "CPY", 3, &Instruction::CPY, 130 },
+    { "CAL", 1, &Instruction::CAL, 80  },
   };
 
   uint8_t GetInstructionIndex(std::string instruction)
@@ -65,7 +66,7 @@ namespace kip
     return 0;
   }
 
-//////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////
 
   InterpretResult Instruction::STB(uint32_t* line)
   {
@@ -536,7 +537,22 @@ namespace kip
   }
 
 
-//////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////
+
+  Argument::Argument()
+    : type(Type::INVALID)
+  {
+  }
+
+  Argument::Argument(uint32_t data, uint8_t dereferenceCount)
+    : data(data), dereferenceCount(dereferenceCount), type(Type::DATA)
+  {
+  }
+
+  Argument::Argument(std::string stringLabel)
+    : stringLabel(stringLabel), type(Type::STRING)
+  {
+  }
 
   uint32_t Argument::GetAddr()
   {
@@ -556,6 +572,11 @@ namespace kip
     uint8_t r = 0;
     ReadByte(d, r);
     return r;
+  }
+
+  Instruction::Instruction()
+    : line(), id(0)
+  {
   }
 
   Instruction::Instruction(std::string line)
@@ -623,7 +644,7 @@ namespace kip
       id = GetInstructionIndex(split[0]);
       for (unsigned i = 1; i < split.size(); ++i)
       {
-        Argument A;
+        Argument A(0);
         while (split[i][0] == '*') // Dereferences
         {
           ++A.dereferenceCount;
@@ -636,7 +657,7 @@ namespace kip
         else if (split[i][0] == '#') // Octal
           A.data = std::stoi(split[i].substr(1), nullptr, 8);
         else if (context.labels.find(split[i]) != context.labels.end()) // Label
-          A.data = context.labels[split[i]];
+          A = context.labels[split[i]];
         else // Decimal value
           A.data = std::stoi(split[i], nullptr, 10);
         arguments.push_back(A);
@@ -793,18 +814,36 @@ namespace kip
         int v = i + 1;
         if (line.size() > 0)
         {
-          if (line[0] == '$') // Hex value
-            v = std::stoi(line.substr(1), nullptr, 16);
-          else if (line[0] == ':') // Binary value
-            v = std::stoi(line.substr(1), nullptr, 2);
-          else if (line[0] == '#') // Octal
-            v = std::stoi(line.substr(1), nullptr, 8);
-          else if (context.labels.find(line) != context.labels.end()) // Label
-            v = context.labels[line];
-          else // Decimal value
-            v = std::stoi(line, nullptr, 10);
+          if (line[0] == '\"') // String
+          {
+            line = line.substr(1);
+            p = line.find_last_of('\"');
+            if (line.size() == 0)
+            {
+              results.push_back(InterpretResult(false, "Compilation error: No closing quotation for string literal label at line " + std::to_string(i)));
+              return results;
+            }
+            line = line.substr(0, p);
+            context.labels[label] = Argument(line);
+          }
+          else
+          {
+            if (context.labels.find(line) != context.labels.end()) // Label
+              context.labels[label] = context.labels[line];
+            else
+            {
+              if (line[0] == '$') // Hex value
+                v = std::stoi(line.substr(1), nullptr, 16);
+              else if (line[0] == ':') // Binary value
+                v = std::stoi(line.substr(1), nullptr, 2);
+              else if (line[0] == '#') // Octal
+                v = std::stoi(line.substr(1), nullptr, 8);
+              else // Decimal value
+                v = std::stoi(line, nullptr, 10);
+              context.labels[label] = v;
+            }
+          }
         }
-        context.labels[label] = v;
         line = "";
       }
     }
@@ -813,12 +852,12 @@ namespace kip
     return results;
   }
 
-  std::vector<InterpretResult> InterpretLines(std::vector<std::string> &lines, bool debug)
+  std::vector<InterpretResult> InterpretLines(std::vector<std::string> &lines, uint8_t verbosity)
   {
-    return InterpretLines(lines, "", debug);
+    return InterpretLines(lines, "", verbosity);
   }
 
-  std::vector<InterpretResult> InterpretLines(std::vector<std::string> &lines, std::string folder, bool debug)
+  std::vector<InterpretResult> InterpretLines(std::vector<std::string> &lines, std::string folder, uint8_t verbosity)
   {
     Instruction::Context context;
     context.folder = folder;
@@ -826,6 +865,7 @@ namespace kip
     if (!bcr.back().success)
       return bcr;
     std::vector<Instruction> instructions;
+    instructions.resize(lines.size());
     for (uint32_t i = 0; i < lines.size(); ++i)
     {
       std::string& line = lines[i];
@@ -834,29 +874,31 @@ namespace kip
         line = line.substr(p);
       instructions.push_back(Instruction(line, context));
     }
-    return InterpretInstructions(instructions, context, debug);
+    return InterpretInstructions(instructions, context, verbosity);
   }
 
-  std::vector<InterpretResult> InterpretInstructions(std::vector<Instruction> &inst, bool debug)
+  std::vector<InterpretResult> InterpretInstructions(std::vector<Instruction> &inst, uint8_t verbosity)
   {
     Instruction::Context c;
-    return InterpretInstructions(inst, c, debug);
+    return InterpretInstructions(inst, c, verbosity);
   }
 
-  std::vector<InterpretResult> InterpretInstructions(std::vector<Instruction> &inst, Instruction::Context &context, bool debug)
+  std::vector<InterpretResult> InterpretInstructions(std::vector<Instruction> &inst, Instruction::Context &context, uint8_t verbosity)
   {
     std::vector<InterpretResult> r;
-    if (debug)
+    if (verbosity > KIP_VERBOSITY_RESERVE_LARGE)
       r.reserve(100000);
+    else if (verbosity > KIP_VERBOSITY_RESERVE_SMALL)
+      r.reserve(5000);
     unsigned lnWidth = 0;
     for (size_t c = inst.size() + 1; c > 0; c /= 10)
       ++lnWidth;
     uint32_t i = 0;
     if (context.labels.find("START") != context.labels.end())
-      i = context.labels["START"];
+      i = context.labels["START"].GetAddr();
     try
     {
-      for (; i < inst.size();)
+      while (i < inst.size())
       {
         Instruction& c = inst[i++];
         if (c.id == 0)
@@ -869,17 +911,16 @@ namespace kip
         ln += std::to_string(i) + ": ";
 
         InterpretResult ir = (c.*(instructionTable[c.id].function))(&i);
-        if (debug)
+        if (!ir.success)
+        {
+          r.push_back(InterpretResult(ir.success, ln + c.line + " -> " + ir.str));
+          break;
+        }
+        else if (verbosity >= instructionTable[c.id].verbosity)
         {
           std::string newstr = ln + c.line + " -> " + ir.str;
           if (r.size() == 0 || r.back().str != newstr)
             r.push_back(InterpretResult(ir.success, ln + c.line + " -> " + ir.str));
-        }
-        if (!ir.success)
-        {
-          if (!debug)
-            r.push_back(InterpretResult(ir.success, ln + c.line + " -> " + ir.str));
-          break;
         }
       }
     }

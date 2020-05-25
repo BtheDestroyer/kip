@@ -1,0 +1,10 @@
+; Demo kip file that showcases the use of string literals
+
+>my_string "Hello, World!"
+
+>start
+STS my_string $0
+
+>output
+RDS $0          ; Displays stored string at $0
+HLT             ; Ends the program

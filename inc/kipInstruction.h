@@ -5,6 +5,9 @@
 #include <vector>
 #include "kipUniversal.h"
 
+#define KIP_VERBOSITY_RESERVE_SMALL uint8_t(100)
+#define KIP_VERBOSITY_RESERVE_LARGE uint8_t(200)
+
 #pragma warning(push)
 #pragma warning(disable:4251)
 
@@ -23,11 +26,22 @@ namespace kip
   class DLLMODE Argument
   {
   public:
+    Argument();
+    Argument(uint32_t data, uint8_t dereferenceCount = 0);
+    Argument(std::string stringLabel);
+
     uint32_t GetAddr();
     uint8_t GetByte();
 
     uint32_t data = 0;
     uint8_t dereferenceCount = 0;
+    std::string stringLabel = "";
+    enum class Type {
+      INVALID,
+      DATA,
+      STRING,
+      COUNT
+    } type;
   };
 
   class DLLMODE Instruction
@@ -36,10 +50,11 @@ namespace kip
     // Map of label to line
     struct DLLMODE Context
     {
-      std::map<std::string, uint32_t> labels;
+      std::map<std::string, Argument> labels;
       std::string folder;
     };
 
+    Instruction();
     Instruction(std::string line);
     Instruction(std::string line, Context context);
 
@@ -96,10 +111,10 @@ namespace kip
   DLLMODE std::vector<InterpretResult> BuildContext(Instruction::Context& context, std::vector<std::string>& lines);
   DLLMODE std::vector<InterpretResult> BuildContextImports(Instruction::Context& context, std::vector<std::string>& lines);
   DLLMODE std::vector<InterpretResult> BuildContextLabels(Instruction::Context& context, std::vector<std::string>& lines);
-  DLLMODE std::vector<InterpretResult> InterpretLines(std::vector<std::string> &lines, bool debug = true);
-  DLLMODE std::vector<InterpretResult> InterpretLines(std::vector<std::string> &lines, std::string folder, bool debug = true);
-  DLLMODE std::vector<InterpretResult> InterpretInstructions(std::vector<Instruction> &inst, bool debug = true);
-  DLLMODE std::vector<InterpretResult> InterpretInstructions(std::vector<Instruction> &inst, Instruction::Context &context, bool debug = true);
+  DLLMODE std::vector<InterpretResult> InterpretLines(std::vector<std::string> &lines, uint8_t verbosity = 255);
+  DLLMODE std::vector<InterpretResult> InterpretLines(std::vector<std::string> &lines, std::string folder, uint8_t verbosity = 255);
+  DLLMODE std::vector<InterpretResult> InterpretInstructions(std::vector<Instruction> &inst, uint8_t verbosity = 255);
+  DLLMODE std::vector<InterpretResult> InterpretInstructions(std::vector<Instruction> &inst, Instruction::Context &context, uint8_t verbosity = 255);
 }
 
 #pragma warning(pop)
