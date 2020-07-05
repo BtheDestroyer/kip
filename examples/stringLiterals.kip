@@ -1,10 +1,15 @@
 ; Demo kip file that showcases the use of string literals
 
->my_string "Hello, World!"
+>my_string "Label string"
 
 >start
-STS my_string $0
+STS my_string $000
+PUS "Stack string"
+POS $100
 
 >output
-RDS $0          ; Displays stored string at $0
-HLT             ; Ends the program
+RDS "String literal argument" ; Displays string literal
+RDS my_string      ; Displays label's string
+RDS $000           ; Displays stored string at $000
+RDS $100           ; Displays stored string at $100 (stack string)
+HLT                ; Ends the program
