@@ -58,47 +58,62 @@ namespace kip
     Instruction(std::string line);
     Instruction(std::string line, Context context);
 
-    InterpretResult STB(uint32_t* line);
-    InterpretResult STA(uint32_t* line);
-    InterpretResult RDB(uint32_t* line);
-    InterpretResult RDA(uint32_t* line);
-    InterpretResult FIL(uint32_t* line);
-    InterpretResult ADB(uint32_t* line);
-    InterpretResult ADA(uint32_t* line);
-    InterpretResult SBB(uint32_t* line);
-    InterpretResult SBA(uint32_t* line);
-    InterpretResult JMP(uint32_t* line);
-    InterpretResult JEQ(uint32_t* line);
-    InterpretResult JNE(uint32_t* line);
-    InterpretResult JGT(uint32_t* line);
-    InterpretResult JLT(uint32_t* line);
-    InterpretResult JGE(uint32_t* line);
-    InterpretResult JLE(uint32_t* line);
-    InterpretResult MLB(uint32_t* line);
-    InterpretResult MLA(uint32_t* line);
-    InterpretResult DVB(uint32_t* line);
-    InterpretResult DVA(uint32_t* line);
-    InterpretResult MDB(uint32_t* line);
-    InterpretResult MDA(uint32_t* line);
-    InterpretResult BLS(uint32_t* line);
-    InterpretResult BRS(uint32_t* line);
-    InterpretResult ROL(uint32_t* line);
-    InterpretResult ROR(uint32_t* line);
-    InterpretResult AND(uint32_t* line);
-    InterpretResult BOR(uint32_t* line);
-    InterpretResult XOR(uint32_t* line);
-    InterpretResult NOT(uint32_t* line);
-    InterpretResult HLT(uint32_t* line);
-    InterpretResult INB(uint32_t* line);
-    InterpretResult INA(uint32_t* line);
-    InterpretResult DCB(uint32_t* line);
-    InterpretResult DCA(uint32_t* line);
-    InterpretResult PUB(uint32_t* line);
-    InterpretResult PUA(uint32_t* line);
-    InterpretResult POB(uint32_t* line);
-    InterpretResult POA(uint32_t* line);
-    InterpretResult CPY(uint32_t* line);
-    InterpretResult CAL(uint32_t* line);
+    // Instructions
+
+    // Storage
+    InterpretResult STB(uint32_t* line) const;
+    InterpretResult STA(uint32_t* line) const;
+    InterpretResult FIL(uint32_t* line) const;
+    InterpretResult CPY(uint32_t* line) const;
+
+    // Debug reads
+    InterpretResult RDB(uint32_t* line) const;
+    InterpretResult RDA(uint32_t* line) const;
+
+    // Jumps
+    InterpretResult JMP(uint32_t* line) const;
+    InterpretResult JEQ(uint32_t* line) const;
+    InterpretResult JNE(uint32_t* line) const;
+    InterpretResult JGT(uint32_t* line) const;
+    InterpretResult JLT(uint32_t* line) const;
+    InterpretResult JGE(uint32_t* line) const;
+    InterpretResult JLE(uint32_t* line) const;
+
+    // Arithmetic
+    InterpretResult ADB(uint32_t* line) const;
+    InterpretResult ADA(uint32_t* line) const;
+    InterpretResult SBB(uint32_t* line) const;
+    InterpretResult SBA(uint32_t* line) const;
+    InterpretResult MLB(uint32_t* line) const;
+    InterpretResult MLA(uint32_t* line) const;
+    InterpretResult DVB(uint32_t* line) const;
+    InterpretResult DVA(uint32_t* line) const;
+    InterpretResult MDB(uint32_t* line) const;
+    InterpretResult MDA(uint32_t* line) const;
+
+    // Increment/decrement
+    InterpretResult INB(uint32_t* line) const;
+    InterpretResult INA(uint32_t* line) const;
+    InterpretResult DCB(uint32_t* line) const;
+    InterpretResult DCA(uint32_t* line) const;
+    
+    // Bit manipulation
+    InterpretResult BLS(uint32_t* line) const;
+    InterpretResult BRS(uint32_t* line) const;
+    InterpretResult ROL(uint32_t* line) const;
+    InterpretResult ROR(uint32_t* line) const;
+    InterpretResult AND(uint32_t* line) const;
+    InterpretResult BOR(uint32_t* line) const;
+    InterpretResult XOR(uint32_t* line) const;
+    InterpretResult NOT(uint32_t* line) const;
+    
+    // Control flow
+    InterpretResult HLT(uint32_t* line) const;
+    InterpretResult PUB(uint32_t* line) const;
+    InterpretResult PUA(uint32_t* line) const;
+    InterpretResult POB(uint32_t* line) const;
+    InterpretResult POA(uint32_t* line) const;
+    InterpretResult CAL(uint32_t* line) const;
 
     const std::string line;
     uint8_t id;
