@@ -30,8 +30,9 @@ namespace kip
     Argument(uint32_t data, uint8_t dereferenceCount = 0);
     Argument(std::string stringLabel);
 
-    uint32_t GetAddr();
-    uint8_t GetByte();
+    uint32_t GetAddr() const;
+    uint8_t GetByte() const;
+    std::string GetString() const;
 
     uint32_t data = 0;
     uint8_t dereferenceCount = 0;
@@ -63,12 +64,14 @@ namespace kip
     // Storage
     InterpretResult STB(uint32_t* line) const;
     InterpretResult STA(uint32_t* line) const;
+    InterpretResult STS(uint32_t* line) const;
     InterpretResult FIL(uint32_t* line) const;
     InterpretResult CPY(uint32_t* line) const;
 
     // Debug reads
     InterpretResult RDB(uint32_t* line) const;
     InterpretResult RDA(uint32_t* line) const;
+    InterpretResult RDS(uint32_t* line) const;
 
     // Jumps
     InterpretResult JMP(uint32_t* line) const;
@@ -111,8 +114,10 @@ namespace kip
     InterpretResult HLT(uint32_t* line) const;
     InterpretResult PUB(uint32_t* line) const;
     InterpretResult PUA(uint32_t* line) const;
+    InterpretResult PUS(uint32_t* line) const;
     InterpretResult POB(uint32_t* line) const;
     InterpretResult POA(uint32_t* line) const;
+    InterpretResult POS(uint32_t* line) const;
     InterpretResult CAL(uint32_t* line) const;
 
     const std::string line;
@@ -126,10 +131,11 @@ namespace kip
   DLLMODE std::vector<InterpretResult> BuildContext(Instruction::Context& context, std::vector<std::string>& lines);
   DLLMODE std::vector<InterpretResult> BuildContextImports(Instruction::Context& context, std::vector<std::string>& lines);
   DLLMODE std::vector<InterpretResult> BuildContextLabels(Instruction::Context& context, std::vector<std::string>& lines);
+  DLLMODE std::vector<Instruction> BuildInstructions(Instruction::Context& context, std::vector<std::string>& lines);
   DLLMODE std::vector<InterpretResult> InterpretLines(std::vector<std::string> &lines, uint8_t verbosity = 255);
   DLLMODE std::vector<InterpretResult> InterpretLines(std::vector<std::string> &lines, std::string folder, uint8_t verbosity = 255);
-  DLLMODE std::vector<InterpretResult> InterpretInstructions(std::vector<Instruction> &inst, uint8_t verbosity = 255);
-  DLLMODE std::vector<InterpretResult> InterpretInstructions(std::vector<Instruction> &inst, Instruction::Context &context, uint8_t verbosity = 255);
+  DLLMODE std::vector<InterpretResult> InterpretInstructions(const std::vector<Instruction> &inst, uint8_t verbosity = 255);
+  DLLMODE std::vector<InterpretResult> InterpretInstructions(const std::vector<Instruction> &inst, Instruction::Context &context, uint8_t verbosity = 255);
 }
 
 #pragma warning(pop)

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <list>
 #include <tuple>
+#include <string>
 
 #include "kipMemory.h"
 
@@ -215,6 +216,24 @@ namespace kip
       ++it;
     }
     return false; // Requested address was not mapped
+  }
+
+  bool WriteString(uint32_t address, const std::string& string)
+  {
+    return WriteBytes(address, (uint8_t*)(string.data()), string.length() + 1);
+  }
+
+  bool ReadString(uint32_t address, std::string& string)
+  {
+    string.clear();
+    uint8_t c = '\0';
+    do
+    {
+      if (!ReadByte(address++, c))
+        return false;
+      string += char(c);
+    } while (c);
+    return true;
   }
 
   bool SetStackPointer(uint32_t address)
