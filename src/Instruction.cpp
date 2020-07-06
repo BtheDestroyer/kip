@@ -110,7 +110,7 @@ namespace kip
   {
     std::string A = arguments[0].GetString();
     uint32_t B = arguments[1].GetAddr();
-    if (WriteBytes(B, (uint8_t*)(A.data()), A.length() + 1))
+    if (WriteBytes(B, (uint8_t*)(A.data()), uint32_t(A.length() + 1)))
       return InterpretResult(true, std::to_string(unsigned(B)) + "<=" + A);
     return InterpretResult(false, "Address " + std::to_string(B) + " not mapped");
   }
@@ -175,7 +175,7 @@ namespace kip
     std::string A = arguments[0].GetString();
     if (!GetStackPointer(s))
       return InterpretResult(false, "Stack pointer is not mapped");
-    uint32_t size = A.size();
+    uint32_t size = uint32_t(A.size());
     if (!WriteByte(s, 0))
       return InterpretResult(false, "Stack pointer is not mapped post-write (" + std::to_string(s - 4) + ")");
     if (!WriteBytes(s - size, (uint8_t*)(A.data()), size))
@@ -1006,6 +1006,7 @@ namespace kip
         else if (p != 0)
           line = line.substr(p);
         int v = i + 1;
+        context.labels[label] = v;
         if (line.size() > 0)
         {
           if (line[0] == '\"') // String
@@ -1142,6 +1143,74 @@ namespace kip
     }
     if (r.size() == 0 || r.back().success)
       r.push_back(InterpretResult(true, "Executed successfully"));
+    return r;
+  }
+
+  std::vector<uint8_t> CompileInstructionsToBytecode(const std::vector<Instruction>& inst, Instruction::Context& context)
+  {
+    Bytecode::Header header;
+    return CompileInstructionsToBytecode(inst, context, header);
+  }
+
+  std::vector<uint8_t> CompileInstructionsToBytecode(const std::vector<Instruction>& inst, Instruction::Context& context, Bytecode::Header& header)
+  {
+    std::vector<uint8_t> bc;
+    bc.resize(header.size());
+    std::copy(header.begin(), header.end(), bc.begin());
+    for (std::map<std::string, Argument>::iterator label = context.labels.begin(); label != context.labels.end(); ++label)
+    {
+      switch (label->second.type)
+      {
+      case Argument::Type::DATA:
+        bc.push_back(uint8_t(Bytecode::DataType::LABEL_DATA));
+        bc.resize(bc.size() + label->first.size() + 1);
+        std::copy(label->first.begin(), label->first.end(), bc.end() - (label->first.size() + 1));
+        bc.push_back(uint8_t(label->second.data >> 24));
+        bc.push_back(uint8_t(label->second.data >> 16));
+        bc.push_back(uint8_t(label->second.data >> 8 ));
+        bc.push_back(uint8_t(label->second.data >> 0 ));
+        break;
+      case Argument::Type::STRING:
+        bc.push_back(uint8_t(Bytecode::DataType::LABEL_STRING));
+        bc.resize(bc.size() + label->first.size() + label->second.stringLabel.size() + 2);
+        std::copy(label->first.begin(), label->first.end(), bc.end() - (label->first.size() + label->second.stringLabel.size() + 2));
+        std::copy(label->second.stringLabel.begin(), label->second.stringLabel.end(), bc.end() - (label->second.stringLabel.size() + 1));
+        break;
+      }
+    }
+    for (const Instruction& i : inst)
+    {
+      uint8_t id = i.id + uint8_t(Bytecode::DataType::INSTRUCTIONS_START);
+      if (id < uint8_t(Bytecode::DataType::INSTRUCTIONS_START)
+        || id > uint8_t(Bytecode::DataType::INSTRUCTIONS_END))
+        throw "Attempted to compile instruction id to a value outside of the valid range";
+      bc.push_back(id);
+      for (const Argument& a : i.arguments)
+      {
+        bc.push_back(uint8_t(a.type));
+        switch (a.type)
+        {
+        case Argument::Type::DATA:
+          bc.push_back(a.dereferenceCount);
+          bc.push_back(uint8_t(a.data >> 24));
+          bc.push_back(uint8_t(a.data >> 16));
+          bc.push_back(uint8_t(a.data >> 8));
+          bc.push_back(uint8_t(a.data >> 0));
+          break;
+        case Argument::Type::STRING:
+          bc.resize(bc.size() + a.stringLabel.size() + 1);
+          std::copy(a.stringLabel.begin(), a.stringLabel.end(), bc.end() - (a.stringLabel.size() + 1));
+          break;
+        }
+      }
+    }
+    return bc;
+  }
+
+  std::vector<InterpretResult> InterpretBytecode(const std::vector<uint8_t>& inst, uint8_t verbosity)
+  {
+    std::vector<InterpretResult> r;
+    r.push_back(InterpretResult(false, "Bytecode interpretation not yet implemented!"));
     return r;
   }
 }

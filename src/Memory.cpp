@@ -220,7 +220,7 @@ namespace kip
 
   bool WriteString(uint32_t address, const std::string& string)
   {
-    return WriteBytes(address, (uint8_t*)(string.data()), string.length() + 1);
+    return WriteBytes(address, (uint8_t*)(string.data()), uint32_t(string.length() + 1));
   }
 
   bool ReadString(uint32_t address, std::string& string)

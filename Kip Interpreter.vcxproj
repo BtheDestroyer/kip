@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc\framework.h" />
+    <ClInclude Include="inc\kipBytecode.h" />
     <ClInclude Include="inc\kipHelloWorld.h" />
     <ClInclude Include="inc\kip.h" />
     <ClInclude Include="inc\kipInstruction.h" />
@@ -29,6 +30,7 @@
     <ClInclude Include="inc\pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Bytecode.cpp" />
     <ClCompile Include="src\dllmain.cpp" />
     <ClCompile Include="src\HelloWorld.cpp" />
     <ClCompile Include="src\Instruction.cpp" />

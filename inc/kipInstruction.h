@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include "kipUniversal.h"
+#include "kipBytecode.h"
 
 #define KIP_VERBOSITY_RESERVE_SMALL uint8_t(100)
 #define KIP_VERBOSITY_RESERVE_LARGE uint8_t(200)
@@ -137,6 +138,10 @@ namespace kip
   DLLMODE std::vector<InterpretResult> InterpretLines(std::vector<std::string> &lines, std::string folder, uint8_t verbosity = 255);
   DLLMODE std::vector<InterpretResult> InterpretInstructions(const std::vector<Instruction> &inst, uint8_t verbosity = 255);
   DLLMODE std::vector<InterpretResult> InterpretInstructions(const std::vector<Instruction> &inst, Instruction::Context &context, uint8_t verbosity = 255);
+
+  DLLMODE std::vector<uint8_t> CompileInstructionsToBytecode(const std::vector<Instruction>& inst, Instruction::Context& context);
+  DLLMODE std::vector<uint8_t> CompileInstructionsToBytecode(const std::vector<Instruction>& inst, Instruction::Context& context, Bytecode::Header& header);
+  DLLMODE std::vector<InterpretResult> InterpretBytecode(const std::vector<uint8_t>& inst, uint8_t verbosity = 255);
 }
 
 #pragma warning(pop)
