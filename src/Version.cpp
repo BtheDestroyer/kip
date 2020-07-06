@@ -4,5 +4,5 @@
 namespace kip
 {
   const uint16_t versionMajor = 0;
-  const uint16_t versionMinor = 8;
+  const uint16_t versionMinor = 9;
 }
