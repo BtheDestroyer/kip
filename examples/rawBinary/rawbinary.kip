@@ -1,0 +1,18 @@
+; Demo kip file that loads data from an external file
+
+>start
+STA $100 $000           ; Set address to load binary to
+BIN "data.bin" *$000    ; Loads binary data to address at $000
+STA $FFFFFFFF $100
+STA $FEDCBA98 $104
+STA $76543210 $108
+STS "Saved data!" $10C
+SAV $100 $18 "save.bin" ; Save data to file
+
+>output
+RDA *$000         ; Reads loaded address at offset $00
+ADA *$000 $4 $000 ; Advance binary offset
+RDB *$000         ; Reads loaded byte at current offset
+ADA *$000 $1 $000 ; Advance binary offset
+RDS *$000         ; Reads loaded string at current offset
+HLT               ; Ends the program
