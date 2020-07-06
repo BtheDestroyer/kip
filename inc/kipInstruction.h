@@ -28,11 +28,11 @@ namespace kip
   public:
     Argument();
     Argument(uint32_t data, uint8_t dereferenceCount = 0);
-    Argument(std::string stringLabel);
+    Argument(const std::string& string);
 
     uint32_t GetAddr() const;
     uint8_t GetByte() const;
-    std::string GetString() const;
+    const std::string& GetString() const;
 
     uint32_t data = 0;
     uint8_t dereferenceCount = 0;
@@ -67,6 +67,8 @@ namespace kip
     InterpretResult STS(uint32_t* line) const;
     InterpretResult FIL(uint32_t* line) const;
     InterpretResult CPY(uint32_t* line) const;
+    InterpretResult BIN(uint32_t* line) const;
+    InterpretResult SAV(uint32_t* line) const;
 
     // Debug reads
     InterpretResult RDB(uint32_t* line) const;

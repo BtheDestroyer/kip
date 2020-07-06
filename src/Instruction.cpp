@@ -23,6 +23,8 @@ namespace kip
     { "STS", 2, &Instruction::STS, 200 },
     { "FIL", 3, &Instruction::FIL, 150 },
     { "CPY", 3, &Instruction::CPY, 130 },
+    { "BIN", 2, &Instruction::BIN, 120 },
+    { "SAV", 3, &Instruction::SAV, 120 },
     { "RDB", 1, &Instruction::RDB, 0   },
     { "RDA", 1, &Instruction::RDA, 0   },
     { "RDS", 1, &Instruction::RDS, 0   },
@@ -126,6 +128,56 @@ namespace kip
         return InterpretResult(false, "An address in [" + std::to_string(unsigned(B)) + ", " + std::to_string(unsigned(B + C)) + ") is unmapped");
     }
     return InterpretResult(true, "[" + std::to_string(unsigned(B)) + "," + std::to_string(unsigned(B + C)) + ")<=[" + std::to_string(unsigned(A)) + ", " + std::to_string(unsigned(A + C)) + ")");
+  }
+
+  InterpretResult Instruction::BIN(uint32_t* line) const
+  {
+    std::string A = arguments[0].GetString();
+    uint32_t B = arguments[1].GetAddr();
+    uint32_t size = 0;
+    std::ifstream file(A, std::ios::binary);
+    if (!file.is_open())
+      return InterpretResult(false, "Could not open external file: " + A);
+    const std::streamsize bufferSize = 128;
+    char buffer[bufferSize] = { 0 };
+    std::streamsize size = 0;
+    uint32_t addr = B;
+    while (!file.eof())
+    {
+      file.read(buffer, bufferSize);
+      size = file.gcount();
+      if (size > 0)
+        size %= bufferSize;
+      if (!WriteBytes(addr, (uint8_t*)(buffer), size));
+        return InterpretResult(false, "An address in [" + std::to_string(unsigned(addr)) + ", " + std::to_string(unsigned(addr + size)) + ") is unmapped");
+      addr += size;
+    }
+    file.close();
+    return InterpretResult(true, "[" + std::to_string(unsigned(B)) + "," + std::to_string(unsigned(addr)) + ")<={" + A + "}");
+  }
+
+  InterpretResult Instruction::SAV(uint32_t* line) const
+  {
+    uint32_t A = arguments[0].GetAddr();
+    uint32_t B = arguments[1].GetAddr();
+    std::string C = arguments[2].GetString();
+    std::ofstream file(C, std::ios::binary);
+    if (!file.is_open())
+      return InterpretResult(false, "Could not open external file: " + C);
+    const std::streamsize bufferSize = 128;
+    char buffer[bufferSize] = { 0 };
+    uint32_t addr = A;
+    uint32_t size = B;
+    while (size > 0)
+    {
+      if (!ReadBytes(addr, (uint8_t*)(buffer), size > bufferSize ? bufferSize : size))
+        return InterpretResult(false, "An address in [" + std::to_string(unsigned(addr)) + ", " + std::to_string(unsigned(addr + size)) + ") is unmapped");
+      file.write(buffer, bufferSize);
+      addr += size > bufferSize ? bufferSize : size;
+      size -= size > bufferSize ? bufferSize : size;
+    }
+    file.close();
+    return InterpretResult(true, "[" + std::to_string(unsigned(A)) + "," + std::to_string(unsigned(addr)) + ")=>{" + C + "}");
   }
 
   /////////////////////////////
@@ -630,8 +682,8 @@ namespace kip
   {
   }
 
-  Argument::Argument(std::string stringLabel)
-    : stringLabel(stringLabel), type(Type::STRING)
+  Argument::Argument(const std::string& string)
+    : stringLabel(string), type(Type::STRING)
   {
   }
 
@@ -658,7 +710,7 @@ namespace kip
     return r;
   }
 
-  std::string Argument::GetString() const
+  const std::string& Argument::GetString() const
   {
     if (type == Type::STRING)
     {
