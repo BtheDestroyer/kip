@@ -9,7 +9,7 @@ POS $100
 
 >output
 RDS "String literal argument" ; Displays string literal
-RDS my_string      ; Displays label's string
-RDS $000           ; Displays stored string at $000
-RDS $100           ; Displays stored string at $100 (stack string)
-HLT                ; Ends the program
+RDS my_string                 ; Displays label's string
+RDS $000                      ; Displays stored string at $000
+RDS $100                      ; Displays stored string at $100 (stack string)
+HLT                           ; Ends the program
