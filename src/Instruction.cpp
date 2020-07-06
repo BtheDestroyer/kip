@@ -18,21 +18,37 @@ namespace kip
     uint8_t verbosity; // Lower numbers are higher priority
   } instructionTable[] = {
     { "", 0, nullptr, 255 },
+
+    // Storage
     { "STB", 2, &Instruction::STB, 200 },
     { "STA", 2, &Instruction::STA, 200 },
     { "STS", 2, &Instruction::STS, 200 },
     { "FIL", 3, &Instruction::FIL, 150 },
     { "CPY", 3, &Instruction::CPY, 130 },
+    { "PUB", 1, &Instruction::PUB, 120 },
+    { "PUA", 1, &Instruction::PUA, 120 },
+    { "PUS", 1, &Instruction::PUS, 120 },
+    { "POB", 1, &Instruction::POB, 120 },
+    { "POA", 1, &Instruction::POA, 120 },
+    { "POS", 1, &Instruction::POS, 120 },
     { "BIN", 2, &Instruction::BIN, 120 },
     { "SAV", 3, &Instruction::SAV, 120 },
+
+    // Debugging
     { "RDB", 1, &Instruction::RDB, 0   },
     { "RDA", 1, &Instruction::RDA, 0   },
     { "RDS", 1, &Instruction::RDS, 0   },
+
+    // Control Flow
     { "JMP", 1, &Instruction::JMP, 100 },
     { "JEQ", 3, &Instruction::JEQ, 100 },
     { "JNE", 3, &Instruction::JNE, 100 },
     { "JGT", 3, &Instruction::JGT, 100 },
     { "JLT", 3, &Instruction::JLT, 100 },
+    { "HLT", 0, &Instruction::HLT, 10  },
+    { "CAL", 1, &Instruction::CAL, 80  },
+
+    // Arithmetic
     { "ADB", 3, &Instruction::ADB, 150 },
     { "ADA", 3, &Instruction::ADA, 150 },
     { "SBB", 3, &Instruction::SBB, 150 },
@@ -42,10 +58,14 @@ namespace kip
     { "DVB", 3, &Instruction::DVB, 150 },
     { "DVA", 3, &Instruction::DVA, 150 },
     { "MDA", 3, &Instruction::MDB, 150 },
+
+    // Increment/decrement
     { "INB", 1, &Instruction::INB, 150 },
     { "INA", 1, &Instruction::INA, 150 },
     { "DCB", 1, &Instruction::DCB, 150 },
     { "DCA", 1, &Instruction::DCA, 150 },
+    
+    // Bit manipulation
     { "BLS", 3, &Instruction::BLS, 150 },
     { "BRS", 3, &Instruction::BRS, 150 },
     { "ROL", 3, &Instruction::ROL, 150 },
@@ -54,14 +74,6 @@ namespace kip
     { "BOR", 3, &Instruction::BOR, 150 },
     { "XOR", 3, &Instruction::XOR, 150 },
     { "NOT", 2, &Instruction::NOT, 150 },
-    { "HLT", 0, &Instruction::HLT, 10  },
-    { "PUB", 1, &Instruction::PUB, 120 },
-    { "PUA", 1, &Instruction::PUA, 120 },
-    { "PUS", 1, &Instruction::PUS, 120 },
-    { "POB", 1, &Instruction::POB, 120 },
-    { "POA", 1, &Instruction::POA, 120 },
-    { "POS", 1, &Instruction::POS, 120 },
-    { "CAL", 1, &Instruction::CAL, 80  },
   };
 
   uint8_t GetInstructionIndex(std::string instruction)
@@ -75,6 +87,7 @@ namespace kip
   //////////////////////////////////////////////////////////////
   // Storage                 //
   /////////////////////////////
+
   InterpretResult Instruction::STB(Context* context) const
   {
     uint8_t  A = arguments[0].GetByte();
@@ -128,6 +141,102 @@ namespace kip
         return InterpretResult(false, "An address in [" + std::to_string(unsigned(B)) + ", " + std::to_string(unsigned(B + C)) + ") is unmapped");
     }
     return InterpretResult(true, "[" + std::to_string(unsigned(B)) + "," + std::to_string(unsigned(B + C)) + ")<=[" + std::to_string(unsigned(A)) + ", " + std::to_string(unsigned(A + C)) + ")");
+  }
+
+  InterpretResult Instruction::PUB(Context* context) const
+  {
+    uint32_t s = 0;
+    uint8_t  A = arguments[0].GetByte();
+    if (!GetStackPointer(s))
+      return InterpretResult(false, "Stack pointer is not mapped");
+    if (!WriteByte(s - 1, A))
+      return InterpretResult(false, "Stack pointer is not mapped post-write (" + std::to_string(s - 1) + ")");
+    if (!SetStackPointer(s - 1))
+      return InterpretResult(false, "Stack pointer is not mapped post-decrement (" + std::to_string(s - 1) + ")");
+    return InterpretResult(true, std::to_string(unsigned(s - 1)) + "<=" + std::to_string(unsigned(A)));
+  }
+
+  InterpretResult Instruction::PUA(Context* context) const
+  {
+    uint32_t s = 0;
+    uint32_t A = arguments[0].GetAddr();
+    if (!GetStackPointer(s))
+      return InterpretResult(false, "Stack pointer is not mapped");
+    if (!WriteBytes(s - 4, (uint8_t*)(&A), 4))
+      return InterpretResult(false, "Stack pointer is not mapped post-write (" + std::to_string(s - 4) + ")");
+    if (!SetStackPointer(s - 4))
+      return InterpretResult(false, "Stack pointer is not mapped post-decrement (" + std::to_string(s - 4) + ")");
+    return InterpretResult(true, std::to_string(unsigned(s - 4)) + "<=" + std::to_string(unsigned(A)));
+  }
+
+  InterpretResult Instruction::PUS(Context* context) const
+  {
+    uint32_t s = 0;
+    std::string A = arguments[0].GetString();
+    if (!GetStackPointer(s))
+      return InterpretResult(false, "Stack pointer is not mapped");
+    uint32_t size = A.size();
+    if (!WriteByte(s, 0))
+      return InterpretResult(false, "Stack pointer is not mapped post-write (" + std::to_string(s - 4) + ")");
+    if (!WriteBytes(s - size, (uint8_t*)(A.data()), size))
+      return InterpretResult(false, "Stack pointer is not mapped post-write (" + std::to_string(s - 4) + ")");
+    if (!SetStackPointer(s - size))
+      return InterpretResult(false, "Stack pointer is not mapped post-decrement (" + std::to_string(s - 4) + ")");
+    return InterpretResult(true, std::to_string(unsigned(s - size)) + "<=\"" + A + "\"");
+  }
+
+  InterpretResult Instruction::POB(Context* context) const
+  {
+    uint32_t s = 0;
+    uint32_t A = arguments[0].GetAddr();
+    uint8_t  v = 0;
+    if (!GetStackPointer(s))
+      return InterpretResult(false, "Stack pointer is not mapped");
+    if (!ReadByte(s, v))
+      return InterpretResult(false, "Stack pointer is not mapped post-read (" + std::to_string(s) + ")");
+    if (!WriteByte(A, v))
+      return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
+    if (!SetStackPointer(s + 1))
+      return InterpretResult(false, "Stack pointer is not mapped post-increment (" + std::to_string(s + 1) + ")");
+    return InterpretResult(true, std::to_string(unsigned(A)) + "<=" + std::to_string(unsigned(v)));
+  }
+
+  InterpretResult Instruction::POA(Context* context) const
+  {
+    uint32_t s = 0;
+    uint32_t A = arguments[0].GetAddr();
+    uint32_t v = 0;
+    if (!GetStackPointer(s))
+      return InterpretResult(false, "Stack pointer is not mapped");
+    if (!ReadBytes(s, (uint8_t*)(&v), 4))
+      return InterpretResult(false, "Stack pointer is not mapped post-read (" + std::to_string(s) + ")");
+    if (!WriteBytes(A, (uint8_t*)(&v), 4))
+      return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
+    if (!SetStackPointer(s + 4))
+      return InterpretResult(false, "Stack pointer is not mapped post-increment (" + std::to_string(s + 4) + ")");
+    return InterpretResult(true, std::to_string(unsigned(A)) + "<=" + std::to_string(unsigned(v)));
+  }
+
+  InterpretResult Instruction::POS(Context* context) const
+  {
+    uint32_t s = 0;
+    uint32_t A = arguments[0].GetAddr();
+    std::string str;
+    if (!GetStackPointer(s))
+      return InterpretResult(false, "Stack pointer is not mapped");
+    uint8_t c = '\0';
+    do
+    {
+      if (!ReadByte(s++, c))
+        return InterpretResult(false, "Stack pointer is not mapped post-write (" + std::to_string(s - 4) + ")");
+      if (c)
+        str += char(c);
+    } while (c);
+    if (!SetStackPointer(s))
+      return InterpretResult(false, "Stack pointer is not mapped post-decrement (" + std::to_string(s - 4) + ")");
+    if (!WriteString(A, str))
+      return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
+    return InterpretResult(true, std::to_string(unsigned(A)) + "<=\"" + str + "\"");
   }
 
   InterpretResult Instruction::BIN(Context* context) const
@@ -191,7 +300,7 @@ namespace kip
   }
 
   /////////////////////////////
-  // Debug reads             //
+  // Debugging               //
   /////////////////////////////
 
   InterpretResult Instruction::RDB(Context* context) const
@@ -218,7 +327,7 @@ namespace kip
   } 
 
   /////////////////////////////
-  // Jumps                   //
+  // Control Flow            //
   /////////////////////////////
 
   InterpretResult Instruction::JMP(Context* context) const
@@ -311,6 +420,31 @@ namespace kip
       context->line = A - 1;
     }
     return InterpretResult(true, "pc<=" + std::to_string(context->line));
+  }
+
+  InterpretResult Instruction::HLT(Context* context) const
+  {
+    if (!context)
+      return InterpretResult(false, std::string(instructionTable[id].string) + " cannot be run without context");
+    context->line = uint32_t(-1);
+    return InterpretResult(true, "Halted program");
+  }
+
+  InterpretResult Instruction::CAL(Context* context) const
+  {
+    uint32_t s = 0;
+    uint32_t A = arguments[0].GetAddr();
+    if (!context)
+      return InterpretResult(false, std::string(instructionTable[id].string) + " cannot be run without context");
+    uint32_t next = context->line + 1;
+    if (!GetStackPointer(s))
+      return InterpretResult(false, "Stack pointer is not mapped");
+    if (!WriteBytes(s - 4, (uint8_t*)(&next), 4))
+      return InterpretResult(false, "Stack pointer is not mapped post-write (" + std::to_string(s - 4) + ")");
+    if (!SetStackPointer(s - 4))
+      return InterpretResult(false, "Stack pointer is not mapped post-decrement (" + std::to_string(s - 4) + ")");
+    context->line = A - 1;
+    return InterpretResult(true, std::to_string(unsigned(s - 4)) + "<=" + std::to_string(int(next)) + ";  pc <= " + std::to_string(context->line));
   }
 
   /////////////////////////////
@@ -551,132 +685,6 @@ namespace kip
       return InterpretResult(true, std::to_string(unsigned(B)) + "<=" + std::to_string(int(~A)));
     return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
   }
-
-  /////////////////////////////
-  // Control flow            //
-  /////////////////////////////
-
-  InterpretResult Instruction::HLT(Context* context) const
-  {
-    if (!context)
-      return InterpretResult(false, std::string(instructionTable[id].string) + " cannot be run without context");
-    context->line = uint32_t(-1);
-    return InterpretResult(true, "Halted program");
-  }
-
-  InterpretResult Instruction::PUB(Context* context) const
-  {
-    uint32_t s = 0;
-    uint8_t  A = arguments[0].GetByte();
-    if (!GetStackPointer(s))
-      return InterpretResult(false, "Stack pointer is not mapped");
-    if (!WriteByte(s - 1, A))
-      return InterpretResult(false, "Stack pointer is not mapped post-write (" + std::to_string(s - 1) + ")");
-    if (!SetStackPointer(s - 1))
-      return InterpretResult(false, "Stack pointer is not mapped post-decrement (" + std::to_string(s - 1) + ")");
-    return InterpretResult(true, std::to_string(unsigned(s - 1)) + "<=" + std::to_string(unsigned(A)));
-  }
-
-  InterpretResult Instruction::PUA(Context* context) const
-  {
-    uint32_t s = 0;
-    uint32_t A = arguments[0].GetAddr();
-    if (!GetStackPointer(s))
-      return InterpretResult(false, "Stack pointer is not mapped");
-    if (!WriteBytes(s - 4, (uint8_t*)(&A), 4))
-      return InterpretResult(false, "Stack pointer is not mapped post-write (" + std::to_string(s - 4) + ")");
-    if (!SetStackPointer(s - 4))
-      return InterpretResult(false, "Stack pointer is not mapped post-decrement (" + std::to_string(s - 4) + ")");
-    return InterpretResult(true, std::to_string(unsigned(s - 4)) + "<=" + std::to_string(unsigned(A)));
-  }
-
-  InterpretResult Instruction::PUS(Context* context) const
-  {
-    uint32_t s = 0;
-    std::string A = arguments[0].GetString();
-    if (!GetStackPointer(s))
-      return InterpretResult(false, "Stack pointer is not mapped");
-    uint32_t size = A.size();
-    if (!WriteByte(s, 0))
-      return InterpretResult(false, "Stack pointer is not mapped post-write (" + std::to_string(s - 4) + ")");
-    if (!WriteBytes(s - size, (uint8_t*)(A.data()), size))
-      return InterpretResult(false, "Stack pointer is not mapped post-write (" + std::to_string(s - 4) + ")");
-    if (!SetStackPointer(s - size))
-      return InterpretResult(false, "Stack pointer is not mapped post-decrement (" + std::to_string(s - 4) + ")");
-    return InterpretResult(true, std::to_string(unsigned(s - size)) + "<=\"" + A + "\"");
-  }
-
-  InterpretResult Instruction::POB(Context* context) const
-  {
-    uint32_t s = 0;
-    uint32_t A = arguments[0].GetAddr();
-    uint8_t  v = 0;
-    if (!GetStackPointer(s))
-      return InterpretResult(false, "Stack pointer is not mapped");
-    if (!ReadByte(s, v))
-      return InterpretResult(false, "Stack pointer is not mapped post-read (" + std::to_string(s) + ")");
-    if (!WriteByte(A, v))
-      return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
-    if (!SetStackPointer(s + 1))
-      return InterpretResult(false, "Stack pointer is not mapped post-increment (" + std::to_string(s + 1) + ")");
-    return InterpretResult(true, std::to_string(unsigned(A)) + "<=" + std::to_string(unsigned(v)));
-  }
-
-  InterpretResult Instruction::POA(Context* context) const
-  {
-    uint32_t s = 0;
-    uint32_t A = arguments[0].GetAddr();
-    uint32_t v = 0;
-    if (!GetStackPointer(s))
-      return InterpretResult(false, "Stack pointer is not mapped");
-    if (!ReadBytes(s, (uint8_t*)(&v), 4))
-      return InterpretResult(false, "Stack pointer is not mapped post-read (" + std::to_string(s) + ")");
-    if (!WriteBytes(A, (uint8_t*)(&v), 4))
-      return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
-    if (!SetStackPointer(s + 4))
-      return InterpretResult(false, "Stack pointer is not mapped post-increment (" + std::to_string(s + 4) + ")");
-    return InterpretResult(true, std::to_string(unsigned(A)) + "<=" + std::to_string(unsigned(v)));
-  }
-
-  InterpretResult Instruction::POS(Context* context) const
-  {
-    uint32_t s = 0;
-    uint32_t A = arguments[0].GetAddr();
-    std::string str;
-    if (!GetStackPointer(s))
-      return InterpretResult(false, "Stack pointer is not mapped");
-    uint8_t c = '\0';
-    do
-    {
-      if (!ReadByte(s++, c))
-        return InterpretResult(false, "Stack pointer is not mapped post-write (" + std::to_string(s - 4) + ")");
-      if (c)
-        str += char(c);
-    } while (c);
-    if (!SetStackPointer(s))
-      return InterpretResult(false, "Stack pointer is not mapped post-decrement (" + std::to_string(s - 4) + ")");
-    if (!WriteString(A, str))
-      return InterpretResult(false, "Address " + std::to_string(A) + " not mapped");
-    return InterpretResult(true, std::to_string(unsigned(A)) + "<=\"" + str + "\"");
-  }
-
-  InterpretResult Instruction::CAL(Context* context) const
-  {
-    uint32_t s = 0;
-    uint32_t A = arguments[0].GetAddr();
-    if (!context)
-      return InterpretResult(false, std::string(instructionTable[id].string) + " cannot be run without context");
-    uint32_t next = context->line + 1;
-    if (!GetStackPointer(s))
-      return InterpretResult(false, "Stack pointer is not mapped");
-    if (!WriteBytes(s - 4, (uint8_t*)(&next), 4))
-      return InterpretResult(false, "Stack pointer is not mapped post-write (" + std::to_string(s - 4) + ")");
-    if (!SetStackPointer(s - 4))
-      return InterpretResult(false, "Stack pointer is not mapped post-decrement (" + std::to_string(s - 4) + ")");
-    context->line = A - 1;
-    return InterpretResult(true, std::to_string(unsigned(s - 4)) + "<=" + std::to_string(int(next)) + ";  pc <= " + std::to_string(context->line));
-  }
-
 
   //////////////////////////////////////////////////////////////
 

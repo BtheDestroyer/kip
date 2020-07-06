@@ -68,15 +68,21 @@ namespace kip
     InterpretResult STS(Context* context) const;
     InterpretResult FIL(Context* context) const;
     InterpretResult CPY(Context* context) const;
+    InterpretResult PUB(Context* context) const;
+    InterpretResult PUA(Context* context) const;
+    InterpretResult PUS(Context* context) const;
+    InterpretResult POB(Context* context) const;
+    InterpretResult POA(Context* context) const;
+    InterpretResult POS(Context* context) const;
     InterpretResult BIN(Context* context) const;
     InterpretResult SAV(Context* context) const;
 
-    // Debug reads
+    // Debugging
     InterpretResult RDB(Context* context) const;
     InterpretResult RDA(Context* context) const;
     InterpretResult RDS(Context* context) const;
 
-    // Jumps
+    // Control Flow
     InterpretResult JMP(Context* context) const;
     InterpretResult JEQ(Context* context) const;
     InterpretResult JNE(Context* context) const;
@@ -84,6 +90,8 @@ namespace kip
     InterpretResult JLT(Context* context) const;
     InterpretResult JGE(Context* context) const;
     InterpretResult JLE(Context* context) const;
+    InterpretResult HLT(Context* context) const;
+    InterpretResult CAL(Context* context) const;
 
     // Arithmetic
     InterpretResult ADB(Context* context) const;
@@ -112,16 +120,6 @@ namespace kip
     InterpretResult BOR(Context* context) const;
     InterpretResult XOR(Context* context) const;
     InterpretResult NOT(Context* context) const;
-    
-    // Control flow
-    InterpretResult HLT(Context* context) const;
-    InterpretResult PUB(Context* context) const;
-    InterpretResult PUA(Context* context) const;
-    InterpretResult PUS(Context* context) const;
-    InterpretResult POB(Context* context) const;
-    InterpretResult POA(Context* context) const;
-    InterpretResult POS(Context* context) const;
-    InterpretResult CAL(Context* context) const;
 
     const std::string line;
     uint8_t id;
