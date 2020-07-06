@@ -12,7 +12,7 @@ SBB *$0 2 $8       ; Find value of A
 SBB *$0 1 $1C      ; Find value of B
 ADB **$8 **$1C *$0 ; New number is A + B
 ADB *$0 $1 $0      ; Increment write index
-JNE fib *$0 *$4      ; Jump back to line 9 if *$0 hasn't reached *$4
+JNE fib *$0 *$4    ; Jump back to line 9 if *$0 hasn't reached *$4
 
 >output
 RDB $20            |
