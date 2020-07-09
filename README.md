@@ -1,11 +1,11 @@
 # kip ![kip logo](https://raw.githubusercontent.com/BtheDestroyer/kip/master/res/Logo_KIP.trimmed.32.png)
 
-Low-level assembly-like programming language designed for my fantasy operating system, FOS: https://github.com/BtheDestroyer/FOS
+Low-level assembly-like programming language designed for education, fantasy console development, and automation tools.
 
-## Roadmap
+## Roadmap ![kip logo](https://raw.githubusercontent.com/BtheDestroyer/kip/master/res/Logo_KIP.trimmed.32.png)
 
 View the list of items left to add on this Trello board: https://trello.com/b/lCLjzcnz/kiplang
 
-## Using Kip as a scripting language
+## Using kip as a scripting language ![kip logo](https://raw.githubusercontent.com/BtheDestroyer/kip/master/res/Logo_KIP.trimmed.32.png)
 
-Not really practical since Kip is practically assembly and scripting languages are really meant to abstract complexity away, but if you want to, here's the instructions: https://github.com/BtheDestroyer/kip/wiki/Integrating-Kip
+While it's not really practical since Kip is practically assembly and scripting languages are really meant to abstract complexity away, you can still use it as a scripting language if you want to. Here's the instructions to get it integrated: https://github.com/BtheDestroyer/kip/wiki/Integrating-Kip
