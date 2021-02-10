@@ -11,6 +11,11 @@ namespace Bytecode
   {
   }
 
+  uint8_t* Metadata::data()
+  {
+    return rawData.data();
+  }
+
   const uint8_t* Metadata::data() const
   {
     return rawData.data();
@@ -19,6 +24,27 @@ namespace Bytecode
   Metadata::size_type Metadata::size() const
   {
     return rawData.size();
+  }
+
+  Metadata Metadata::Decode(const Bytecode::Data& bc, uint32_t& offset)
+  {
+    Metadata block;
+    block.rawData.push_back(bc[offset++]);
+    char c = '\0';
+    switch (Metadata::Type(block.rawData[0]))
+    {
+    case Metadata::Type::COMMENT:
+    case Metadata::Type::AUTHOR:
+      while (c = bc[offset++])
+        block.rawData.push_back(c);
+      break;
+    case Metadata::Type::TIMESTAMP:
+      block.rawData.resize(8);
+      std::memcpy(block.data() + 1, bc.data() + offset, 7);
+      offset += 7;
+      break;
+    }
+    return block;
   }
 
   Metadata Metadata::Comment(const std::string& comment)

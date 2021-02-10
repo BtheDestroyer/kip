@@ -31,11 +31,15 @@ namespace kip
     Argument(uint32_t data, uint8_t dereferenceCount = 0);
     Argument(const std::string& string);
 
-    uint32_t GetAddr() const;
-    uint8_t GetByte() const;
+    using Address = uint32_t;
+    using AddressOrData = uint32_t;
+    using Data = uint8_t;
+
+    Address GetAddr() const;
+    Data GetByte() const;
     const std::string GetString() const;
 
-    uint32_t data = 0;
+    AddressOrData data = 0;
     uint8_t dereferenceCount = 0;
     std::string stringLabel = "";
     enum class Type {
@@ -139,9 +143,13 @@ namespace kip
   DLLMODE std::vector<InterpretResult> InterpretInstructions(const std::vector<Instruction> &inst, uint8_t verbosity = 255);
   DLLMODE std::vector<InterpretResult> InterpretInstructions(const std::vector<Instruction> &inst, Instruction::Context &context, uint8_t verbosity = 255);
 
-  DLLMODE std::vector<uint8_t> CompileInstructionsToBytecode(const std::vector<Instruction>& inst, Instruction::Context& context);
-  DLLMODE std::vector<uint8_t> CompileInstructionsToBytecode(const std::vector<Instruction>& inst, Instruction::Context& context, Bytecode::Header& header);
-  DLLMODE std::vector<InterpretResult> InterpretBytecode(const std::vector<uint8_t>& inst, uint8_t verbosity = 255);
+  DLLMODE Bytecode::Data CompileInstructionsToBytecode(const std::vector<Instruction>& inst, Instruction::Context& context);
+  DLLMODE Bytecode::Data CompileInstructionsToBytecode(const std::vector<Instruction>& inst, Instruction::Context& context, Bytecode::Header& header);
+  DLLMODE Bytecode::Header BuildHeaderFromBytecode(const Bytecode::Data& inst, std::vector<InterpretResult>& r, uint32_t& offset);
+  DLLMODE Instruction::Context BuildContextFromBytecode(const Bytecode::Data& inst, std::vector<InterpretResult>& r, const uint32_t& offset);
+  DLLMODE std::vector<InterpretResult> BuildContextImportsFromBytecode(Instruction::Context& context, const Bytecode::Data& inst, uint32_t offset);
+  DLLMODE std::vector<InterpretResult> BuildContextLabelsFromBytecode(Instruction::Context& context, const Bytecode::Data& inst, uint32_t offset);
+  DLLMODE std::vector<InterpretResult> InterpretBytecode(const Bytecode::Data& inst, uint8_t verbosity = 255);
 }
 
 #pragma warning(pop)

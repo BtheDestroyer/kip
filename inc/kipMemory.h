@@ -5,19 +5,22 @@
 #include <string>
 
 #include "kipUniversal.h"
+#include "kipInstruction.h"
 
 namespace kip
 {
-  DLLMODE bool MapMemory(uint8_t* start, uint32_t size, uint32_t mappedStart);
-  DLLMODE bool MapMemory(void (*readFunc)(uint32_t offset, uint8_t* out, uint32_t count), void (*writeFunc)(uint32_t offset, uint8_t* in, uint32_t count), uint32_t size, uint32_t mappedStart);
-  DLLMODE bool UnmapMemory(uint8_t* start);
-  DLLMODE bool UnmapMemory(uint32_t mappedStart);
-  DLLMODE bool WriteByte(uint32_t address, uint8_t byte);
-  DLLMODE bool ReadByte(uint32_t address, uint8_t& byte);
-  DLLMODE bool WriteBytes(uint32_t address, uint8_t *bytes, uint32_t count);
-  DLLMODE bool ReadBytes(uint32_t address, uint8_t* bytes, uint32_t count);
-  DLLMODE bool WriteString(uint32_t address, const std::string& string);
-  DLLMODE bool ReadString(uint32_t address, std::string& string);
-  DLLMODE bool SetStackPointer(uint32_t address);
-  DLLMODE bool GetStackPointer(uint32_t& address);
+  DLLMODE bool MapMemory(Argument::Data* start, Argument::Address size, Argument::Address mappedStart);
+  typedef void (*MemoryReadFunction)(Argument::Address offset, Argument::Data* out, Argument::Address count);
+  typedef void (*MemoryWriteFunction)(Argument::Address offset, Argument::Data* in, Argument::Address count);
+  DLLMODE bool MapMemory(MemoryReadFunction readFunc, MemoryWriteFunction writeFunc, Argument::Address size, Argument::Address mappedStart);
+  DLLMODE bool UnmapMemory(Argument::Data* start);
+  DLLMODE bool UnmapMemory(Argument::Address mappedStart);
+  DLLMODE bool WriteByte(Argument::Address address, Argument::Data byte);
+  DLLMODE bool ReadByte(Argument::Address address, Argument::Data& byte);
+  DLLMODE bool WriteBytes(Argument::Address address, Argument::Data*bytes, Argument::Address count);
+  DLLMODE bool ReadBytes(Argument::Address address, Argument::Data* bytes, Argument::Address count);
+  DLLMODE bool WriteString(Argument::Address address, const std::string& string);
+  DLLMODE bool ReadString(Argument::Address address, std::string& string);
+  DLLMODE bool SetStackPointer(Argument::Address address);
+  DLLMODE bool GetStackPointer(Argument::Address& address);
 }

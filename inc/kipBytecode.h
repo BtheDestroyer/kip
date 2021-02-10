@@ -13,6 +13,8 @@ namespace kip
 {
 namespace Bytecode
 {
+  typedef std::vector<uint8_t> Data;
+
   enum class DataType
   {
     INVALID = 0x00,
@@ -28,9 +30,11 @@ namespace Bytecode
   {
   public:
     typedef std::vector<uint8_t>::size_type size_type;
+    uint8_t* data();
     const uint8_t* data() const;
     size_type size() const;
 
+    static Metadata Decode(const Bytecode::Data& bc, uint32_t& offset);
     static Metadata Comment(const std::string& comment);
     static Metadata Author(const std::string& author);
     static Metadata Timestamp();
@@ -50,7 +54,6 @@ namespace Bytecode
     std::vector<uint8_t> rawData;
     
     Metadata();
-    Metadata(Type type);
   };
 
   class DLLMODE Header
